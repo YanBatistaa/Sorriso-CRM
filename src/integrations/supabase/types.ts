@@ -14,7 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      patients: {
+        Row: {
+          birth_date: string
+          cpf: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string
+          source: string | null
+          status: string
+          treatment_value: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          birth_date: string
+          cpf: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone: string
+          source?: string | null
+          status: string
+          treatment_value?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          birth_date?: string
+          cpf?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string
+          source?: string | null
+          status?: string
+          treatment_value?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
