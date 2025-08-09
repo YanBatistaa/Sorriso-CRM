@@ -7,20 +7,39 @@ const Dashboard = () => {
   const { data: patients } = usePatients();
 
   useEffect(() => {
-    document.title = "Dashboard • SmileTrack";
+    document.title = "Dashboard • Sorriso CRM";
   }, []);
+
+  const calculateAge = (birthDate: string) => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const kpis = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthPatients = patients.filter(p => new Date(p.created_at ?? p.birth_date) >= monthStart);
-    const ganhos = patients.filter(p => p.status === "Ganha").reduce((sum, p) => sum + (p.treatment_value || 0), 0);
+
+    const ganhos = patients.filter(p => p.status === "Ganha").length;
+    const perdidos = patients.filter(p => p.status === "Perdida").length;
+    
     const ganhosMes = monthPatients.filter(p => p.status === "Ganha").reduce((sum, p) => sum + (p.treatment_value || 0), 0);
     const novosMes = monthPatients.length;
     const abertos = patients.filter(p => p.status === "Em aberto").length;
-    const propostas = patients.filter(p => p.status === "Pré-orçamento").length;
-    const convRate = patients.length ? Math.round((ganhos / Math.max(1, ganhos + propostas)) * 100) : 0;
-    return { ganhosMes, novosMes, convRate, abertos };
+    
+    const totalConclusoes = ganhos + perdidos;
+    const convRate = totalConclusoes > 0 ? Math.round((ganhos / totalConclusoes) * 100) : 0;
+
+    const totalAge = patients.reduce((sum, p) => sum + calculateAge(p.birth_date), 0);
+    const averageAge = patients.length > 0 ? Math.round(totalAge / patients.length) : 0;
+
+    return { ganhosMes, novosMes, convRate, abertos, averageAge };
   }, [patients]);
 
   const receitaPorStatus = useMemo(() => {
@@ -33,16 +52,16 @@ const Dashboard = () => {
     const counts: Record<string, number> = {};
     patients.forEach(p => {
       const d = new Date(p.created_at ?? p.birth_date);
-      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       counts[key] = (counts[key] || 0) + 1;
     });
-    return Object.entries(counts).sort(([a],[b]) => a.localeCompare(b)).map(([month, total]) => ({ month, total }));
+    return Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)).map(([month, total]) => ({ month, total }));
   }, [patients]);
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-semibold">Dashboard</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader><CardTitle className="text-base">Receita Ganha (Mês)</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">R$ {kpis.ganhosMes.toLocaleString("pt-BR")}</p></CardContent>
@@ -58,6 +77,10 @@ const Dashboard = () => {
         <Card>
           <CardHeader><CardTitle className="text-base">Orçamentos em Aberto</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">{kpis.abertos}</p></CardContent>
+        </Card>
+        <Card>
+          <CardHeader><CardTitle className="text-base">Idade Média</CardTitle></CardHeader>
+          <CardContent><p className="text-2xl font-bold">{kpis.averageAge} anos</p></CardContent>
         </Card>
       </div>
 

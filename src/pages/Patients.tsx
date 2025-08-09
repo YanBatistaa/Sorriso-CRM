@@ -29,15 +29,29 @@ const PatientsPage = () => {
   const [editing, setEditing] = useState<Patient | null>(null);
   const [toDelete, setToDelete] = useState<Patient | null>(null);
 
-  useEffect(() => { document.title = "Pacientes • SmileTrack"; }, []);
+  useEffect(() => { document.title = "Pacientes • Sorriso CRM"; }, []);
 
   const filtered = useMemo(() => {
     return selectedStatus === "Todos" ? patients : patients.filter(p => p.status === selectedStatus);
   }, [patients, selectedStatus]);
 
+  const calculateAge = (birthDate: string) => {
+    if (!birthDate) return '';
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const onCreate = () => { setEditing(null); setFormOpen(true); };
   const onEdit = (p: Patient) => { setEditing(p); setFormOpen(true); };
-  const onDelete = async () => {
+  
+  // CORREÇÃO: A função agora é chamada diretamente pelo botão de ação do AlertDialog
+  const handleDeleteConfirm = async () => {
     if (!toDelete?.id) return;
     try {
       await deletePatient(toDelete.id);
@@ -74,11 +88,11 @@ const PatientsPage = () => {
       <PatientSummaryPanel patients={patients} />
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col md:flex-row items-center justify-between gap-2">
           <CardTitle>Pacientes</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
             <Select value={selectedStatus} onValueChange={(v) => setSelectedStatus(v as any)}>
-              <SelectTrigger className="w-48"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="w-full md:w-48"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Todos">Todos</SelectItem>
                 <SelectItem value="Pré-orçamento">Pré-orçamento</SelectItem>
@@ -88,49 +102,51 @@ const PatientsPage = () => {
                 <SelectItem value="Perdida">Perdida</SelectItem>
               </SelectContent>
             </Select>
-            <Button onClick={onCreate}>
+            <Button onClick={onCreate} className="w-full md:w-auto">
               <Plus className="h-4 w-4 mr-2" /> Novo Paciente
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Nascimento</TableHead>
-                <TableHead>CPF</TableHead>
-                <TableHead>Telefone</TableHead>
-                <TableHead>E-mail</TableHead>
-                <TableHead>Origem</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Valor</TableHead>
-                <TableHead className="w-24">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((p) => (
-                <TableRow key={p.id}>
-                  <TableCell>{p.name}</TableCell>
-                  <TableCell>{new Date(p.birth_date).toLocaleDateString("pt-BR")}</TableCell>
-                  <TableCell>{p.cpf}</TableCell>
-                  <TableCell>{p.phone}</TableCell>
-                  <TableCell>{p.email}</TableCell>
-                  <TableCell>{p.source}</TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge>
-                  </TableCell>
-                  <TableCell className="text-right">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Button variant="secondary" size="icon" onClick={() => onEdit(p)}><Edit className="h-4 w-4" /></Button>
-                      <Button variant="destructive" size="icon" onClick={() => setToDelete(p)}><Trash2 className="h-4 w-4" /></Button>
-                    </div>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Idade</TableHead>
+                  <TableHead>CPF</TableHead>
+                  <TableHead>Telefone</TableHead>
+                  <TableHead>E-mail</TableHead>
+                  <TableHead>Tratamento</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Valor</TableHead>
+                  <TableHead className="w-24">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filtered.map((p) => (
+                  <TableRow key={p.id}>
+                    <TableCell>{p.name}</TableCell>
+                    <TableCell>{calculateAge(p.birth_date)} anos</TableCell>
+                    <TableCell>{p.cpf}</TableCell>
+                    <TableCell>{p.phone}</TableCell>
+                    <TableCell>{p.email}</TableCell>
+                    <TableCell>{p.treatment}</TableCell>
+                    <TableCell>
+                      <Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button variant="secondary" size="icon" onClick={() => onEdit(p)}><Edit className="h-4 w-4" /></Button>
+                        <Button variant="destructive" size="icon" onClick={() => setToDelete(p)}><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -150,7 +166,8 @@ const PatientsPage = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={onDelete}>Excluir</AlertDialogAction>
+            {/* CORREÇÃO: O onClick agora chama a função que executa a exclusão */}
+            <AlertDialogAction onClick={handleDeleteConfirm}>Excluir</AlertDialogAction> 
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -16,7 +16,7 @@ const SidebarLayout = () => {
     <div className="min-h-screen w-full grid grid-cols-[260px_1fr]">
       <aside className="border-r bg-card flex flex-col">
         <div className="h-16 flex items-center px-6 border-b">
-          <span className="text-lg font-semibold">SmileTrack</span>
+          <span className="text-lg font-semibold">Sorriso CRM</span>
         </div>
         <nav className="p-4 space-y-1">
           <NavLink to="/dashboard" className={({ isActive }) => `flex items-center gap-2 px-3 py-2 rounded-md transition ${isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'}`}>

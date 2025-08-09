@@ -21,7 +21,7 @@ const Auth = () => {
   }, [session, navigate]);
 
   useEffect(() => {
-    document.title = mode === "login" ? "Entrar • SmileTrack" : "Cadastrar • SmileTrack";
+    document.title = mode === "login" ? "Entrar • Sorriso CRM" : "Cadastrar • Sorriso CRM";
   }, [mode]);
 
   const title = useMemo(() => (mode === "login" ? "Bem-vindo(a)" : "Crie sua conta"), [mode]);

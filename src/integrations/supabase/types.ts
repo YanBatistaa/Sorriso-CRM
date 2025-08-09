@@ -23,7 +23,7 @@ export type Database = {
           id: string
           name: string
           phone: string
-          source: string | null
+          treatment: string | null
           status: string
           treatment_value: number
           updated_at: string
@@ -37,7 +37,7 @@ export type Database = {
           id?: string
           name: string
           phone: string
-          source?: string | null
+          treatment?: string | null
           status: string
           treatment_value?: number
           updated_at?: string
@@ -51,7 +51,7 @@ export type Database = {
           id?: string
           name?: string
           phone?: string
-          source?: string | null
+          treatment?: string | null
           status?: string
           treatment_value?: number
           updated_at?: string
