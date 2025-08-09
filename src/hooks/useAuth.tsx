@@ -7,7 +7,6 @@ interface AuthContextValue {
   session: Session | null;
   initializing: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -38,21 +37,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return { error: error?.message ?? null };
   };
 
-  const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: { emailRedirectTo: redirectUrl },
-    });
-    return { error: error?.message ?? null };
-  };
-
   const signOut = async () => {
     await supabase.auth.signOut();
   };
 
-  const value = useMemo<AuthContextValue>(() => ({ user, session, initializing, signIn, signUp, signOut }), [user, session, initializing]);
+  const value = useMemo<AuthContextValue>(() => ({ user, session, initializing, signIn, signOut }), [user, session, initializing]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
