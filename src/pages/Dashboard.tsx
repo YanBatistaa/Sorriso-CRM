@@ -10,17 +10,6 @@ const Dashboard = () => {
     document.title = "Dashboard • Sorriso CRM";
   }, []);
 
-  const calculateAge = (birthDate: string) => {
-    const today = new Date();
-    const birth = new Date(birthDate);
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
-    return age;
-  };
-
   const kpis = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -36,10 +25,20 @@ const Dashboard = () => {
     const totalConclusoes = ganhos + perdidos;
     const convRate = totalConclusoes > 0 ? Math.round((ganhos / totalConclusoes) * 100) : 0;
 
-    const totalAge = patients.reduce((sum, p) => sum + calculateAge(p.birth_date), 0);
-    const averageAge = patients.length > 0 ? Math.round(totalAge / patients.length) : 0;
+    // Lógica para encontrar o tratamento mais frequente do mês
+    const treatmentCounts = monthPatients.reduce((acc, patient) => {
+      if (patient.treatment) {
+        acc[patient.treatment] = (acc[patient.treatment] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
 
-    return { ganhosMes, novosMes, convRate, abertos, averageAge };
+    const mostFrequentTreatment = Object.keys(treatmentCounts).reduce((a, b) => 
+      treatmentCounts[a] > treatmentCounts[b] ? a : b, 
+      "Nenhum"
+    );
+
+    return { ganhosMes, novosMes, convRate, abertos, mostFrequentTreatment };
   }, [patients]);
 
   const receitaPorStatus = useMemo(() => {
@@ -78,9 +77,10 @@ const Dashboard = () => {
           <CardHeader><CardTitle className="text-base">Orçamentos em Aberto</CardTitle></CardHeader>
           <CardContent><p className="text-2xl font-bold">{kpis.abertos}</p></CardContent>
         </Card>
+        {/* CARD ALTERADO */}
         <Card>
-          <CardHeader><CardTitle className="text-base">Idade Média</CardTitle></CardHeader>
-          <CardContent><p className="text-2xl font-bold">{kpis.averageAge} anos</p></CardContent>
+          <CardHeader><CardTitle className="text-base">Tratamento do Mês</CardTitle></CardHeader>
+          <CardContent><p className="text-2xl font-bold">{kpis.mostFrequentTreatment}</p></CardContent>
         </Card>
       </div>
 

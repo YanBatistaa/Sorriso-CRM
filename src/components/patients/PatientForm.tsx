@@ -32,7 +32,6 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
     setForm({ ...form, [field]: numericValue });
   };
   
-  // Adiciona a hora local à data para evitar problemas de fuso horário
   const selectedDate = form.birth_date ? new Date(form.birth_date + 'T00:00:00') : undefined;
 
   return (
@@ -40,7 +39,7 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label>Nome</Label>
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="off" />
         </div>
         <div className="space-y-2">
           <Label>Data de Nascimento</Label>
@@ -69,19 +68,26 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
         </div>
         <div className="space-y-2">
           <Label>CPF</Label>
-          <Input value={form.cpf} onChange={(e) => handleNumericInput("cpf", e.target.value)} maxLength={11} />
+          <Input value={form.cpf} onChange={(e) => handleNumericInput("cpf", e.target.value)} maxLength={11} autoComplete="off" />
         </div>
         <div className="space-y-2">
           <Label>Telefone</Label>
-          <Input value={form.phone} onChange={(e) => handleNumericInput("phone", e.target.value)} />
+          <Input value={form.phone} onChange={(e) => handleNumericInput("phone", e.target.value)} autoComplete="off" />
         </div>
         <div className="space-y-2">
           <Label>E-mail</Label>
-          <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="off" />
         </div>
         <div className="space-y-2">
           <Label>Tratamento</Label>
-          <Input value={form.treatment} onChange={(e) => setForm({ ...form, treatment: e.target.value })} />
+          <Select value={form.treatment} onValueChange={(v) => setForm({ ...form, treatment: v })}>
+            <SelectTrigger><SelectValue placeholder="Selecione o tratamento" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Aparelho ortodôntico">Aparelho ortodôntico</SelectItem>
+              <SelectItem value="Clareamento">Clareamento</SelectItem>
+              <SelectItem value="Preenchimento labial">Preenchimento labial</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-2">
           <Label>Status</Label>
@@ -98,7 +104,7 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
         </div>
         <div className="space-y-2">
           <Label>Valor do Tratamento (R$)</Label>
-          <Input type="number" step="0.01" value={form.treatment_value || ""} onChange={(e) => setForm({ ...form, treatment_value: Number(e.target.value) })} placeholder="0" />
+          <Input type="number" step="0.01" value={form.treatment_value || ""} onChange={(e) => setForm({ ...form, treatment_value: Number(e.target.value) })} placeholder="0" autoComplete="off" />
         </div>
       </div>
 
