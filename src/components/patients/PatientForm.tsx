@@ -1,19 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Patient } from "@/types/patient";
-import { Input } from "@/components/ui/input"; // <-- Usando nosso novo Input
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // <-- Usando nosso novo Select
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { formatCPF, formatPhone } from "@/lib/formatters";
+import { Textarea } from "@/components/ui/textarea"; // Importa o componente Textarea
 
 export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | null; onSave: (payload: any) => void; onClose: () => void; }) => {
-  // ... (toda a lógica do componente, handlers e useEffects permanecem os mesmos)
-
   const [form, setForm] = useState({
     id: patient?.id,
     name: patient?.name ?? "",
@@ -24,6 +23,7 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
     treatment: patient?.treatment ?? "",
     status: patient?.status ?? "Em aberto",
     treatment_value: patient?.treatment_value ?? 0,
+    description: patient?.description ?? "", // <-- ADICIONADO AO ESTADO
   });
 
   useEffect(() => {
@@ -37,6 +37,7 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
       treatment: patient?.treatment ?? "",
       status: patient?.status ?? "Em aberto",
       treatment_value: patient?.treatment_value ?? 0,
+      description: patient?.description ?? "", // <-- ADICIONADO AO USEEFFECT
     });
   }, [patient]);
 
@@ -51,10 +52,12 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
 
   const handleFormSubmit = () => {
     const cleanedPhone = form.phone.replace(/\D/g, '');
+    const nationalNumber = cleanedPhone.slice(-11);
+    
     const payload = {
       ...form,
       cpf: form.cpf.replace(/\D/g, ''),
-      phone: `+55${cleanedPhone}`,
+      phone: `+55${nationalNumber}`,
     };
     onSave(payload);
   };
@@ -107,9 +110,9 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
           <Input
             value={form.phone}
             onChange={(e) => handleMaskedInputChange(e, 'phone')}
-            maxLength={15}
+            maxLength={19}
             autoComplete="off"
-            placeholder="(00) 00000-0000"
+            placeholder="+55 (00) 00000-0000"
           />
         </div>
 
@@ -147,6 +150,16 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
         <div className="space-y-2">
           <Label>Valor do Tratamento (R$)</Label>
           <Input type="number" step="0.01" value={form.treatment_value || ""} onChange={(e) => setForm({ ...form, treatment_value: Number(e.target.value) })} placeholder="0" autoComplete="off" />
+        </div>
+
+        <div className="space-y-2 md:col-span-2">
+          <Label>Descrição / Anotações</Label>
+          <Textarea
+            value={form.description || ''}
+            onChange={(e) => setForm({ ...form, description: e.target.value })}
+            placeholder="Anotações importantes sobre o paciente ou tratamento..."
+            className="h-24"
+          />
         </div>
 
       </div>

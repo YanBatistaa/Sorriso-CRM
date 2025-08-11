@@ -1,17 +1,24 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePatients } from "@/hooks/usePatients";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
+import { getWeek, getYear, format, isValid } from "date-fns";
 
-// Importa o componente Panel
+// Importações dos componentes de UI
 import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+
+// Importações dos novos componentes de gráfico
+import { RevenueByStatusChart } from "@/components/dashboard/RevenueByStatusChart";
+import { NewPatientsFlowChart } from "@/components/dashboard/NewPatientsFlowChart";
 
 const Dashboard = () => {
   const { data: patients } = usePatients();
+  const [timeRange, setTimeRange] = useState<'week' | 'month'>('month');
 
   useEffect(() => {
     document.title = "Dashboard • Sorriso CRM";
   }, []);
 
+  // A lógica de processamento de dados continua aqui, pois é responsabilidade do "container"
   const kpis = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -42,60 +49,53 @@ const Dashboard = () => {
     return Object.entries(map).map(([status, total]) => ({ status, total }));
   }, [patients]);
 
-  const novosPacientesMes = useMemo(() => {
+  const newPatientsData = useMemo(() => {
     const counts: Record<string, number> = {};
+    
     patients.forEach(p => {
       const d = new Date(p.created_at ?? p.birth_date);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      if (!isValid(d)) return;
+
+      let key = '';
+      if (timeRange === 'month') {
+        key = format(d, "yyyy-MM");
+      } else {
+        const week = getWeek(d, { weekStartsOn: 1 });
+        const year = getYear(d);
+        key = `${year}-S${String(week).padStart(2, '0')}`;
+      }
+      
       counts[key] = (counts[key] || 0) + 1;
     });
-    return Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)).map(([month, total]) => ({ month, total }));
-  }, [patients]);
+
+    return Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)).map(([period, total]) => ({ period, total }));
+  }, [patients, timeRange]);
 
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-semibold">Dashboard</h1>
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* KPI Panels com estilo corrigido */}
+        {/* ... (KPIs permanecem aqui) ... */}
         <Panel>
-          <PanelHeader className="p-4 pb-2">
-            <PanelTitle className="text-sm font-medium">Receita Ganha (Mês)</PanelTitle>
-          </PanelHeader>
-          <PanelContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">R$ {kpis.ganhosMes.toLocaleString("pt-BR")}</p>
-          </PanelContent>
+          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Receita Ganha (Mês)</PanelTitle></PanelHeader>
+          <PanelContent className="p-4 pt-0"><p className="text-2xl font-bold">R$ {kpis.ganhosMes.toLocaleString("pt-BR")}</p></PanelContent>
         </Panel>
         <Panel>
-          <PanelHeader className="p-4 pb-2">
-            <PanelTitle className="text-sm font-medium">Novos Pacientes (Mês)</PanelTitle>
-          </PanelHeader>
-          <PanelContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{kpis.novosMes}</p>
-          </PanelContent>
+          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Novos Pacientes (Mês)</PanelTitle></PanelHeader>
+          <PanelContent className="p-4 pt-0"><p className="text-2xl font-bold">{kpis.novosMes}</p></PanelContent>
         </Panel>
         <Panel>
-          <PanelHeader className="p-4 pb-2">
-            <PanelTitle className="text-sm font-medium">Taxa de Conversão</PanelTitle>
-          </PanelHeader>
-          <PanelContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{kpis.convRate}%</p>
-          </PanelContent>
+          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Taxa de Conversão</PanelTitle></PanelHeader>
+          <PanelContent className="p-4 pt-0"><p className="text-2xl font-bold">{kpis.convRate}%</p></PanelContent>
         </Panel>
         <Panel>
-          <PanelHeader className="p-4 pb-2">
-            <PanelTitle className="text-sm font-medium">Orçamentos em Aberto</PanelTitle>
-          </PanelHeader>
-          <PanelContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{kpis.abertos}</p>
-          </PanelContent>
+          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Orçamentos em Aberto</PanelTitle></PanelHeader>
+          <PanelContent className="p-4 pt-0"><p className="text-2xl font-bold">{kpis.abertos}</p></PanelContent>
         </Panel>
         <Panel>
-          <PanelHeader className="p-4 pb-2">
-            <PanelTitle className="text-sm font-medium">Tratamento do Mês</PanelTitle>
-          </PanelHeader>
-          <PanelContent className="p-4 pt-0">
-            <p className="text-xl font-bold break-words min-h-[56px] flex items-center">{kpis.mostFrequentTreatment}</p>
-          </PanelContent>
+          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Tratamento do Mês</PanelTitle></PanelHeader>
+          <PanelContent className="p-4 pt-0"><p className="text-xl font-bold break-words min-h-[56px] flex items-center">{kpis.mostFrequentTreatment}</p></PanelContent>
         </Panel>
       </div>
 
@@ -103,29 +103,27 @@ const Dashboard = () => {
         <Panel>
           <PanelHeader><PanelTitle>Receita por Status</PanelTitle></PanelHeader>
           <PanelContent className="h-80 pt-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={receitaPorStatus}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="status" fontSize={12} />
-                <YAxis fontSize={12} />
-                <Tooltip />
-                <Bar dataKey="total" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
+            <RevenueByStatusChart data={receitaPorStatus} />
           </PanelContent>
         </Panel>
         <Panel>
-          <PanelHeader><PanelTitle>Fluxo de Novos Pacientes</PanelTitle></PanelHeader>
+          <PanelHeader className="flex items-center justify-between">
+            <PanelTitle>Fluxo de Novos Pacientes</PanelTitle>
+            <ToggleGroup 
+              type="single" 
+              defaultValue="month"
+              onValueChange={(value) => {
+                if (value) setTimeRange(value as 'week' | 'month');
+              }}
+              variant="outline"
+              size="sm"
+            >
+              <ToggleGroupItem value="week" aria-label="Ver por semana">Semana</ToggleGroupItem>
+              <ToggleGroupItem value="month" aria-label="Ver por mês">Mês</ToggleGroupItem>
+            </ToggleGroup>
+          </PanelHeader>
           <PanelContent className="h-80 pt-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={novosPacientesMes}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" fontSize={12} />
-                <YAxis fontSize={12} />
-                <Tooltip />
-                <Line type="monotone" dataKey="total" stroke="hsl(var(--primary))" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
+            <NewPatientsFlowChart data={newPatientsData} />
           </PanelContent>
         </Panel>
       </div>

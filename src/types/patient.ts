@@ -1,5 +1,3 @@
-// src/types/patient.ts
-
 export type PatientStatus = 'Pré-orçamento' | 'Em aberto' | 'Em andamento' | 'Ganha' | 'Perdida';
 export const ALL_STATUSES: PatientStatus[] = ['Pré-orçamento', 'Em aberto', 'Em andamento', 'Ganha', 'Perdida'];
 
@@ -16,4 +14,5 @@ export interface Patient {
   treatment: string;
   status: PatientStatus;
   treatment_value: number;
+  description?: string | null; // <-- CAMPO ADICIONADO
 }
