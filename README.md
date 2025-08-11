@@ -1,73 +1,77 @@
-# Welcome to your Lovable project
+# Sorriso CRM
 
-## Project info
+**Copyright © 2025 Dellion corp. Todos os direitos reservados.**
 
-**URL**: https://lovable.dev/projects/eae07d96-d5a9-49b2-86ef-dbee93bbb1f6
+## 1. Visão Geral
 
-## How can I edit this code?
+O Sorriso CRM é um sistema de Customer Relationship Management (CRM) B2B, desenvolvido sob medida para otimizar a gestão de clínicas e consultórios odontológicos. A plataforma centraliza o gerenciamento do funil de vendas, desde o primeiro contato até a conversão do paciente, e oferece ferramentas para a administração eficiente da base de clientes.
 
-There are several ways of editing your application.
+Este software é um produto comercial e de uso interno. A reprodução, distribuição ou engenharia reversa do código-fonte é estritamente proibida.
 
-**Use Lovable**
+---
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/eae07d96-d5a9-49b2-86ef-dbee93bbb1f6) and start prompting.
+## 2. Status do Projeto
 
-Changes made via Lovable will be committed automatically to this repo.
+**Versão Atual:** 1.0.0 (Em Desenvolvimento)
+**Ambiente Principal:** `main` (Produção)
+**Ambiente de Staging:** `develop` (Homologação)
 
-**Use your preferred IDE**
+---
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+## 3. Funcionalidades Implementadas
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+* **Dashboard Analítico:** Visualização de KPIs essenciais, como receita mensal, novos pacientes e taxa de conversão.
+* **Gestão de Pacientes (CRUD):** Cadastro, visualização, edição e exclusão de pacientes com um layout responsivo (tabela para desktop, cards para mobile).
+* **Funil de Vendas (Kanban):** Quadro visual para gerenciamento do fluxo de vendas com estágios personalizáveis e funcionalidade de arrastar e soltar.
+* **Autenticação Segura:** Sistema de login para acesso controlado à plataforma.
+* **Formulários Inteligentes:** Máscaras de entrada e validações para dados como CPF e Telefone.
 
-Follow these steps:
+---
+
+## 4. Stack de Tecnologias
+
+* **Frontend:** React 18, TypeScript, Vite
+* **Estilização:** Tailwind CSS com componentes `radzionkit` e `shadcn/ui`
+* **Backend & Banco de Dados:** Supabase (PostgreSQL, Auth, Realtime)
+* **Gerenciamento de Estado:** React Query
+* **Drag and Drop:** React Beautiful DnD
+
+---
+
+## 5. Guia de Instalação e Execução Local
+
+Este guia destina-se a desenvolvedores autorizados a trabalhar no projeto.
+
+### 5.1. Pré-requisitos
+
+* [Node.js](https://nodejs.org/) (versão recomendada: 20.x, use `nvm` para gerenciar)
+* Acesso ao projeto do Supabase.
+
+### 5.2. Configuração do Ambiente
+
+1.  **Clonar o Repositório:**
+    ```sh
+    git clone [URL_DO_REPOSITORIO]
+    cd sorriso-crm
+    ```
+
+2.  **Instalar Dependências:**
+    ```sh
+    npm install
+    ```
+
+3.  **Configurar Variáveis de Ambiente:**
+    * Crie uma cópia do arquivo `.env.example` e renomeie para `.env`.
+    * Preencha as variáveis de ambiente com as chaves do seu projeto Supabase:
+
+        ```env
+        VITE_SUPABASE_URL="SUA_URL_DO_PROJETO_SUPABASE"
+        VITE_SUPABASE_ANON_KEY="SUA_CHAVE_ANON_SUPABASE"
+        ```
+
+### 5.3. Executando o Projeto
+
+Para iniciar o servidor de desenvolvimento local, execute:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/eae07d96-d5a9-49b2-86ef-dbee93bbb1f6) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
