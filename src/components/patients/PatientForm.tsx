@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Patient } from "@/types/patient";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input"; // <-- Usando nosso novo Input
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // <-- Usando nosso novo Select
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 import { formatCPF, formatPhone } from "@/lib/formatters";
 
 export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | null; onSave: (payload: any) => void; onClose: () => void; }) => {
+  // ... (toda a lógica do componente, handlers e useEffects permanecem os mesmos)
+
   const [form, setForm] = useState({
     id: patient?.id,
     name: patient?.name ?? "",
@@ -52,7 +54,7 @@ export const PatientForm = ({ patient, onSave, onClose }: { patient: Patient | n
     const payload = {
       ...form,
       cpf: form.cpf.replace(/\D/g, ''),
-      phone: `+55${cleanedPhone}`, // Salva com o +55
+      phone: `+55${cleanedPhone}`,
     };
     onSave(payload);
   };
