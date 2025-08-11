@@ -1,5 +1,5 @@
 import type { Patient } from "@/types/patient";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
 
 export const PatientSummaryPanel = ({ patients }: { patients: Patient[] }) => {
   const pre = patients.filter(p => p.status === 'Pré-orçamento');
@@ -22,15 +22,15 @@ export const PatientSummaryPanel = ({ patients }: { patients: Patient[] }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
       {blocks.map((b) => (
-        <Card key={b.label}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">{b.label}</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Panel key={b.label}>
+          <PanelHeader className="p-4 pb-2">
+            <PanelTitle className="text-sm font-medium">{b.label}</PanelTitle>
+          </PanelHeader>
+          <PanelContent className="p-4 pt-0">
             <p className="text-xl font-bold">{b.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
             <p className="text-xs text-muted-foreground">{b.value} paciente(s)</p>
-          </CardContent>
-        </Card>
+          </PanelContent>
+        </Panel>
       ))}
     </div>
   );

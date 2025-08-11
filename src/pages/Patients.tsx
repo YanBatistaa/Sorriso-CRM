@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ import type { Patient, PatientStatus } from "@/types/patient";
 import { PatientSummaryPanel } from "@/components/patients/PatientSummaryPanel";
 import { PatientForm } from "@/components/patients/PatientForm";
 import { useToast } from "@/hooks/use-toast";
+import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
 
 const STATUS_SEVERITY: Record<PatientStatus, "default" | "secondary" | "destructive" | "outline"> = {
   "Pré-orçamento": "secondary",
@@ -50,7 +50,6 @@ const PatientsPage = () => {
   const onCreate = () => { setEditing(null); setFormOpen(true); };
   const onEdit = (p: Patient) => { setEditing(p); setFormOpen(true); };
   
-  // CORREÇÃO: A função agora é chamada diretamente pelo botão de ação do AlertDialog
   const handleDeleteConfirm = async () => {
     if (!toDelete?.id) return;
     try {
@@ -63,15 +62,13 @@ const PatientsPage = () => {
     }
   };
 
-  const handleSave = async (payload: Omit<Patient, "id" | "created_at" | "updated_at" | "user_id"> & { id?: string }) => {
+  const handleSave = async (payload: Patient) => {
     try {
       if (payload.id) {
-        const { id, ...rest } = payload as any;
-        await updatePatient({ id, ...rest });
+        await updatePatient({ ...payload, id: payload.id });
         toast({ title: "Atualizado", description: "Paciente atualizado com sucesso." });
       } else {
-        const { id, ...rest } = payload as any;
-        await addPatient(rest);
+        await addPatient(payload);
         toast({ title: "Criado", description: "Paciente criado com sucesso." });
       }
       setFormOpen(false);
@@ -87,9 +84,9 @@ const PatientsPage = () => {
 
       <PatientSummaryPanel patients={patients} />
 
-      <Card>
-        <CardHeader className="flex flex-col md:flex-row items-center justify-between gap-2">
-          <CardTitle>Pacientes</CardTitle>
+      <Panel>
+        <PanelHeader className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 md:p-6">
+          <PanelTitle className="text-lg md:text-2xl">Pacientes</PanelTitle>
           <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
             <Select value={selectedStatus} onValueChange={(v) => setSelectedStatus(v as any)}>
               <SelectTrigger className="w-full md:w-48"><SelectValue placeholder="Status" /></SelectTrigger>
@@ -106,38 +103,35 @@ const PatientsPage = () => {
               <Plus className="h-4 w-4 mr-2" /> Novo Paciente
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
+        </PanelHeader>
+        <PanelContent className="p-0 md:p-6 md:pt-0">
+          {/* VISUALIZAÇÃO EM TABELA PARA DESKTOP */}
+          <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
                   <TableHead>Idade</TableHead>
-                  <TableHead>CPF</TableHead>
                   <TableHead>Telefone</TableHead>
-                  <TableHead>E-mail</TableHead>
                   <TableHead>Tratamento</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
-                  <TableHead className="w-24">Ações</TableHead>
+                  <TableHead className="w-24 text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filtered.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell>{p.name}</TableCell>
+                    <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell>{calculateAge(p.birth_date)} anos</TableCell>
-                    <TableCell>{p.cpf}</TableCell>
                     <TableCell>{p.phone}</TableCell>
-                    <TableCell>{p.email}</TableCell>
                     <TableCell>{p.treatment}</TableCell>
                     <TableCell>
                       <Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge>
                     </TableCell>
                     <TableCell className="text-right">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center justify-center gap-2">
                         <Button variant="secondary" size="icon" onClick={() => onEdit(p)}><Edit className="h-4 w-4" /></Button>
                         <Button variant="destructive" size="icon" onClick={() => setToDelete(p)}><Trash2 className="h-4 w-4" /></Button>
                       </div>
@@ -147,8 +141,38 @@ const PatientsPage = () => {
               </TableBody>
             </Table>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* VISUALIZAÇÃO EM CARDS PARA MOBILE */}
+          <div className="md:hidden space-y-4 p-4">
+            {filtered.map((p) => (
+              <Panel key={p.id} className="p-4 flex flex-col gap-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <p className="font-semibold text-lg">{p.name}</p>
+                    <p className="text-sm text-muted-foreground">{p.treatment}</p>
+                  </div>
+                  <Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm border-t pt-4">
+                  <div className="font-medium">Idade:</div>
+                  <div>{calculateAge(p.birth_date)} anos</div>
+                  
+                  <div className="font-medium">Telefone:</div>
+                  <div>{p.phone}</div>
+                  
+                  <div className="font-medium">Valor:</div>
+                  <div className="font-semibold">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
+                </div>
+                <div className="flex justify-end gap-2 border-t pt-4">
+                  <Button variant="secondary" size="icon" onClick={() => onEdit(p)}><Edit className="h-4 w-4" /></Button>
+                  <Button variant="destructive" size="icon" onClick={() => setToDelete(p)}><Trash2 className="h-4 w-4" /></Button>
+                </div>
+              </Panel>
+            ))}
+          </div>
+
+        </PanelContent>
+      </Panel>
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent>
@@ -166,8 +190,7 @@ const PatientsPage = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            {/* CORREÇÃO: O onClick agora chama a função que executa a exclusão */}
-            <AlertDialogAction onClick={handleDeleteConfirm}>Excluir</AlertDialogAction> 
+            <AlertDialogAction onClick={handleDeleteConfirm}>Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

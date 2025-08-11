@@ -11,6 +11,7 @@ const Index = lazy(() => import("./pages/Index"));
 const AuthPage = lazy(() => import("./pages/Auth"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Patients = lazy(() => import("./pages/Patients"));
+const Vendas = lazy(() => import("./pages/Vendas"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
                   <Route index element={<Dashboard />} />
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="patients" element={<Patients />} />
+                  <Route path="vendas" element={<Vendas />} />
                 </Route>
               </Route>
 

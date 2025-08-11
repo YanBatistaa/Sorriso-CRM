@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Home, Users, LogOut } from "lucide-react";
+import { Home, Users, LogOut, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -13,7 +13,8 @@ const SidebarLayout = () => {
   };
 
   return (
-    <div className="min-h-screen w-full grid grid-cols-[260px_1fr]">
+    // 1. O contêiner principal agora ocupa toda a altura da tela e esconde qualquer estouro
+    <div className="h-screen w-full grid grid-cols-[260px_1fr] overflow-hidden">
       <aside className="border-r bg-card flex flex-col">
         <div className="h-16 flex items-center px-6 border-b">
           <span className="text-lg font-semibold">Sorriso CRM</span>
@@ -25,6 +26,9 @@ const SidebarLayout = () => {
           <NavLink to="/patients" className={({ isActive }) => `flex items-center gap-2 px-3 py-2 rounded-md transition ${isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'}`}>
             <Users className="h-4 w-4" /> Pacientes
           </NavLink>
+          <NavLink to="/vendas" className={({ isActive }) => `flex items-center gap-2 px-3 py-2 rounded-md transition ${isActive ? 'bg-accent text-accent-foreground' : 'hover:bg-accent hover:text-accent-foreground'}`}>
+            <DollarSign className="h-4 w-4" /> Vendas
+          </NavLink>
         </nav>
         <div className="mt-auto p-4">
           <Button variant="secondary" className="w-full" onClick={handleSignOut}>
@@ -32,7 +36,9 @@ const SidebarLayout = () => {
           </Button>
         </div>
       </aside>
-      <main className="min-h-screen">
+      
+      {/* 2. A área de conteúdo principal agora é a única parte que pode rolar verticalmente */}
+      <main className="overflow-y-auto">
         <div className="p-6">
           <Outlet />
         </div>
