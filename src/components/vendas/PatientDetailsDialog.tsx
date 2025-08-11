@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '../ui/label';
+import { formatCPF, formatPhone } from '@/lib/formatters'; // <-- Importação
 
 interface PatientDetailsDialogProps {
   patient: Patient | null;
@@ -23,9 +24,9 @@ export function PatientDetailsDialog({ patient, onClose, onStatusChange, onEdit 
         <div className="space-y-4 py-4">
           <p><span className="font-semibold">Tratamento:</span> {patient.treatment}</p>
           <p><span className="font-semibold">Valor:</span> {patient.treatment_value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
-          <p><span className="font-semibold">Telefone:</span> {patient.phone}</p>
+          <p><span className="font-semibold">Telefone:</span> {formatPhone(patient.phone)}</p>
           <p><span className="font-semibold">Email:</span> {patient.email}</p>
-          <p><span className="font-semibold">CPF:</span> {patient.cpf}</p>
+          <p><span className="font-semibold">CPF:</span> {formatCPF(patient.cpf)}</p>
           
           <div className="space-y-2">
             <Label>Mudar Status</Label>

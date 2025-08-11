@@ -12,6 +12,7 @@ import { PatientSummaryPanel } from "@/components/patients/PatientSummaryPanel";
 import { PatientForm } from "@/components/patients/PatientForm";
 import { useToast } from "@/hooks/use-toast";
 import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
+import { formatCPF, formatPhone } from "@/lib/formatters"; // <-- Importação
 
 const STATUS_SEVERITY: Record<PatientStatus, "default" | "secondary" | "destructive" | "outline"> = {
   "Pré-orçamento": "secondary",
@@ -124,7 +125,7 @@ const PatientsPage = () => {
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell>{calculateAge(p.birth_date)} anos</TableCell>
-                    <TableCell>{p.phone}</TableCell>
+                    <TableCell>+55 {formatPhone(p.phone)}</TableCell>
                     <TableCell>{p.treatment}</TableCell>
                     <TableCell>
                       <Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge>
@@ -158,7 +159,10 @@ const PatientsPage = () => {
                   <div>{calculateAge(p.birth_date)} anos</div>
                   
                   <div className="font-medium">Telefone:</div>
-                  <div>{p.phone}</div>
+                  <div>+55 {formatPhone(p.phone)}</div>
+                  
+                  <div className="font-medium">CPF:</div>
+                  <div>{formatCPF(p.cpf)}</div>
                   
                   <div className="font-medium">Valor:</div>
                   <div className="font-semibold">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
