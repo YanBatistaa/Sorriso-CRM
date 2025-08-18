@@ -3,8 +3,6 @@ import { usePatients } from '@/hooks/usePatients';
 import { ALL_STATUSES, Patient, PatientStatus } from '@/types/patient';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { Kanban } from '@/components/ui/kanban';
-
-// Importações dos componentes
 import { KanbanColumn } from '@/components/vendas/KanbanColumn';
 import { PatientDetailsDialog } from '@/components/vendas/PatientDetailsDialog';
 import { PatientForm } from '@/components/patients/PatientForm';
@@ -15,13 +13,10 @@ const Vendas = () => {
   const { data: serverPatients, updatePatient } = usePatients();
   const { toast } = useToast();
   
-  // Estado local para a atualização otimista
   const [patientList, setPatientList] = useState<Patient[]>([]);
-  
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   
-  // Sincroniza o estado local com os dados do servidor quando eles chegam
   useEffect(() => {
     setPatientList(serverPatients);
   }, [serverPatients]);
@@ -37,31 +32,18 @@ const Vendas = () => {
     if (!patientToMove) return;
 
     const newStatus = destination.droppableId as PatientStatus;
-
-    // --- LÓGICA DA ATUALIZAÇÃO OTIMISTA ---
-    
-    // 1. Guarda o estado original para reverter em caso de erro
     const originalPatientList = [...patientList];
 
-    // 2. Atualiza a interface INSTANTANEAMENTE
     setPatientList(currentList => {
-      const newList = currentList.filter(p => p.id !== draggableId);
+      const listWithoutMovedPatient = currentList.filter(p => p.id !== draggableId);
       const updatedPatient = { ...patientToMove, status: newStatus };
-      
-      // Encontra a lista da coluna de destino e insere o paciente na nova posição
-      const destColumnPatients = newList.filter(p => p.status === newStatus);
-      destColumnPatients.splice(destination.index, 0, updatedPatient);
-
-      // Reagrupa a lista de pacientes
-      const otherPatients = newList.filter(p => p.status !== newStatus);
-      return [...otherPatients, ...destColumnPatients];
+      listWithoutMovedPatient.splice(destination.index, 0, updatedPatient);
+      return listWithoutMovedPatient;
     });
 
-    // 3. Envia a atualização para o banco de dados em segundo plano
     updatePatient({ id: draggableId, status: newStatus })
       .catch(() => {
         toast({ title: "Erro", description: "Não foi possível mover o paciente. Revertendo.", variant: "destructive" });
-        // 4. Em caso de erro, reverte a interface para o estado original
         setPatientList(originalPatientList);
       });
   };
@@ -90,21 +72,24 @@ const Vendas = () => {
   };
 
   return (
-    <div className="h-[calc(100vh-theme(spacing.24))] w-full flex flex-col">
-      <h1 className="text-3xl font-semibold mb-6">Funil de Vendas</h1>
+    // Container principal que define o layout flexível
+    <div className="flex flex-col h-full w-full">
+      <h1 className="text-3xl font-semibold mb-6 shrink-0">Funil de Vendas</h1>
       
       <DragDropContext onDragEnd={onDragEnd}>
-        <Kanban.Board>
-          {ALL_STATUSES.map(status => (
-            <KanbanColumn
-              key={status}
-              status={status}
-              // O componente agora renderiza a partir da nossa lista local
-              patients={patientList.filter(p => p.status === status)}
-              onClickPatient={setSelectedPatient}
-            />
-          ))}
-        </Kanban.Board>
+        {/* Container que permite o scroll horizontal */}
+        <div className="flex-1 overflow-x-auto pb-4">
+          <Kanban.Board className="h-full items-stretch">
+            {ALL_STATUSES.map(status => (
+              <KanbanColumn
+                key={status}
+                status={status}
+                patients={patientList.filter(p => p.status === status)}
+                onClickPatient={setSelectedPatient}
+              />
+            ))}
+          </Kanban.Board>
+        </div>
       </DragDropContext>
 
       <PatientDetailsDialog 

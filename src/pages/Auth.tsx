@@ -4,10 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 
 // Componentes da UI
-import { Button } from "@/components/ui/button"; // Nossa nova UI de botão
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel"; // Usando o Panel que já criamos
+import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
 
 const Auth = () => {
   const { signIn, session } = useAuth();
@@ -38,12 +38,13 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen grid place-items-center bg-background">
-      <Panel className="w-full max-w-md"> {/* Trocado Card por Panel */}
+    // Adicionado padding para telas pequenas
+    <div className="min-h-screen grid place-items-center bg-background p-4">
+      <Panel className="w-full max-w-md">
         <PanelHeader>
           <PanelTitle className="text-2xl">Bem-vindo(a) de volta!</PanelTitle>
         </PanelHeader>
-        <PanelContent className="pt-2"> {/* Ajuste no padding */}
+        <PanelContent className="pt-2">
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>

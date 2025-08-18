@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { usePatients } from "@/hooks/usePatients";
-import { getWeek, getYear, format, isValid } from "date-fns";
+import { getWeek, getYear, format, parse, isValid, startOfWeek, addWeeks } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 // Importações dos componentes de UI
 import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
@@ -10,6 +11,32 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RevenueByStatusChart } from "@/components/dashboard/RevenueByStatusChart";
 import { NewPatientsFlowChart } from "@/components/dashboard/NewPatientsFlowChart";
 
+// Função para formatar o eixo X do gráfico de fluxo
+const formatXAxisTick = (tickItem: string) => {
+  try {
+    if (tickItem.includes('-S')) {
+      const [yearStr, weekStr] = tickItem.replace('S', '').split('-');
+      const year = parseInt(yearStr);
+      const weekNumber = parseInt(weekStr);
+      const firstDayOfYear = new Date(year, 0, 4);
+      const dateWithWeeks = addWeeks(firstDayOfYear, weekNumber - 1);
+      const startOfTheWeek = startOfWeek(dateWithWeeks, { weekStartsOn: 1 });
+      if (isValid(startOfTheWeek)) {
+        return format(startOfTheWeek, 'dd/MMM', { locale: ptBR });
+      }
+    }
+    if (tickItem.match(/^\d{4}-\d{2}$/)) {
+      const date = parse(tickItem, 'yyyy-MM', new Date());
+      if (isValid(date)) {
+        return format(date, 'MMM/yy', { locale: ptBR });
+      }
+    }
+    return tickItem;
+  } catch (error) {
+    return tickItem;
+  }
+};
+
 const Dashboard = () => {
   const { data: patients } = usePatients();
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('month');
@@ -18,7 +45,6 @@ const Dashboard = () => {
     document.title = "Dashboard • Sorriso CRM";
   }, []);
 
-  // A lógica de processamento de dados continua aqui, pois é responsabilidade do "container"
   const kpis = useMemo(() => {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -75,27 +101,46 @@ const Dashboard = () => {
     <div className="space-y-6">
       <h1 className="text-3xl font-semibold">Dashboard</h1>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        {/* ... (KPIs permanecem aqui) ... */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <Panel>
-          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Receita Ganha (Mês)</PanelTitle></PanelHeader>
-          <PanelContent className="p-4 pt-0"><p className="text-2xl font-bold">R$ {kpis.ganhosMes.toLocaleString("pt-BR")}</p></PanelContent>
+          <PanelHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <PanelTitle className="text-sm font-medium">Receita Ganha (Mês)</PanelTitle>
+          </PanelHeader>
+          <PanelContent>
+            <p className="text-2xl font-bold">R$ {kpis.ganhosMes.toLocaleString("pt-BR")}</p>
+          </PanelContent>
         </Panel>
         <Panel>
-          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Novos Pacientes (Mês)</PanelTitle></PanelHeader>
-          <PanelContent className="p-4 pt-0"><p className="text-2xl font-bold">{kpis.novosMes}</p></PanelContent>
+          <PanelHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <PanelTitle className="text-sm font-medium">Novos Pacientes (Mês)</PanelTitle>
+          </PanelHeader>
+          <PanelContent>
+            <p className="text-2xl font-bold">{kpis.novosMes}</p>
+          </PanelContent>
         </Panel>
         <Panel>
-          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Taxa de Conversão</PanelTitle></PanelHeader>
-          <PanelContent className="p-4 pt-0"><p className="text-2xl font-bold">{kpis.convRate}%</p></PanelContent>
+          <PanelHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <PanelTitle className="text-sm font-medium">Taxa de Conversão</PanelTitle>
+          </PanelHeader>
+          <PanelContent>
+            <p className="text-2xl font-bold">{kpis.convRate}%</p>
+          </PanelContent>
         </Panel>
         <Panel>
-          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Orçamentos em Aberto</PanelTitle></PanelHeader>
-          <PanelContent className="p-4 pt-0"><p className="text-2xl font-bold">{kpis.abertos}</p></PanelContent>
+          <PanelHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <PanelTitle className="text-sm font-medium">Orçamentos em Aberto</PanelTitle>
+          </PanelHeader>
+          <PanelContent>
+            <p className="text-2xl font-bold">{kpis.abertos}</p>
+          </PanelContent>
         </Panel>
-        <Panel>
-          <PanelHeader className="p-4 pb-2"><PanelTitle className="text-sm font-medium">Tratamento do Mês</PanelTitle></PanelHeader>
-          <PanelContent className="p-4 pt-0"><p className="text-xl font-bold break-words min-h-[56px] flex items-center">{kpis.mostFrequentTreatment}</p></PanelContent>
+        <Panel className="col-span-2 md:col-span-3 lg:col-span-1">
+          <PanelHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <PanelTitle className="text-sm font-medium">Tratamento do Mês</PanelTitle>
+          </PanelHeader>
+          <PanelContent>
+            <p className="text-2xl font-bold truncate">{kpis.mostFrequentTreatment}</p>
+          </PanelContent>
         </Panel>
       </div>
 
@@ -107,7 +152,7 @@ const Dashboard = () => {
           </PanelContent>
         </Panel>
         <Panel>
-          <PanelHeader className="flex items-center justify-between">
+          <PanelHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <PanelTitle>Fluxo de Novos Pacientes</PanelTitle>
             <ToggleGroup 
               type="single" 

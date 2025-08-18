@@ -12,7 +12,7 @@ import { PatientSummaryPanel } from "@/components/patients/PatientSummaryPanel";
 import { PatientForm } from "@/components/patients/PatientForm";
 import { useToast } from "@/hooks/use-toast";
 import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
-import { formatCPF, formatPhone } from "@/lib/formatters"; // <-- Importação
+import { formatCPF, formatPhone } from "@/lib/formatters";
 
 const STATUS_SEVERITY: Record<PatientStatus, "default" | "secondary" | "destructive" | "outline"> = {
   "Pré-orçamento": "secondary",
@@ -57,7 +57,7 @@ const PatientsPage = () => {
       await deletePatient(toDelete.id);
       toast({ title: "Excluído", description: "Paciente removido com sucesso." });
     } catch (e: any) {
-      toast({ title: "Erro", description: e.message });
+      toast({ title: "Erro", description: e.message, variant: "destructive" });
     } finally {
       setToDelete(null);
     }
@@ -75,7 +75,7 @@ const PatientsPage = () => {
       setFormOpen(false);
       setEditing(null);
     } catch (e: any) {
-      toast({ title: "Erro", description: e.message });
+      toast({ title: "Erro", description: e.message, variant: "destructive" });
     }
   };
 
@@ -105,7 +105,7 @@ const PatientsPage = () => {
             </Button>
           </div>
         </PanelHeader>
-        <PanelContent className="p-0 md:p-6 md:pt-0">
+        <PanelContent>
           {/* VISUALIZAÇÃO EM TABELA PARA DESKTOP */}
           <div className="hidden md:block">
             <Table>
@@ -127,9 +127,7 @@ const PatientsPage = () => {
                     <TableCell>{calculateAge(p.birth_date)} anos</TableCell>
                     <TableCell>+55 {formatPhone(p.phone)}</TableCell>
                     <TableCell>{p.treatment}</TableCell>
-                    <TableCell>
-                      <Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge>
-                    </TableCell>
+                    <TableCell><Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge></TableCell>
                     <TableCell className="text-right">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-2">
@@ -144,7 +142,7 @@ const PatientsPage = () => {
           </div>
 
           {/* VISUALIZAÇÃO EM CARDS PARA MOBILE */}
-          <div className="md:hidden space-y-4 p-4">
+          <div className="md:hidden space-y-4">
             {filtered.map((p) => (
               <Panel key={p.id} className="p-4 flex flex-col gap-4">
                 <div className="flex justify-between items-start">
@@ -180,18 +178,14 @@ const PatientsPage = () => {
 
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editing ? "Editar Paciente" : "Novo Paciente"}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? "Editar Paciente" : "Novo Paciente"}</DialogTitle></DialogHeader>
           <PatientForm patient={editing} onClose={() => setFormOpen(false)} onSave={handleSave} />
         </DialogContent>
       </Dialog>
 
       <AlertDialog open={!!toDelete} onOpenChange={(o) => !o && setToDelete(null)}>
         <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Deseja excluir este paciente?</AlertDialogTitle>
-          </AlertDialogHeader>
+          <AlertDialogHeader><AlertDialogTitle>Deseja excluir este paciente?</AlertDialogTitle></AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteConfirm}>Excluir</AlertDialogAction>
