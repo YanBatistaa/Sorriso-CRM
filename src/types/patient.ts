@@ -6,13 +6,34 @@ export interface Patient {
   created_at?: string;
   updated_at?: string;
   user_id?: string;
+  clinic_id?: string;
   name: string;
   birth_date: string; // YYYY-MM-DD
   cpf: string;
   phone: string;
-  email: string;
-  treatment: string;
+  email: string | null;
   status: PatientStatus;
   treatment_value: number;
-  description?: string | null; // <-- CAMPO ADICIONADO
+  treatment_id: string | null;
+  description?: string | null;
+  // Adicionado para receber o nome do tratamento da tabela relacionada
+  treatments: {
+    name: string;
+  } | null;
+}
+
+export interface Clinic {
+    id: string;
+    name: string;
+    clinic_type: string | null;
+    employee_count: number | null;
+    owner_id: string;
+    logo_url?: string | null; 
+}
+
+export interface Treatment {
+    id: string;
+    clinic_id: string;
+    name: string;
+    is_active: boolean;
 }

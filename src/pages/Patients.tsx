@@ -13,6 +13,7 @@ import { PatientForm } from "@/components/patients/PatientForm";
 import { useToast } from "@/hooks/use-toast";
 import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { formatCPF, formatPhone } from "@/lib/formatters";
+import { useClinic } from "@/hooks/useClinic";
 
 const STATUS_SEVERITY: Record<PatientStatus, "default" | "secondary" | "destructive" | "outline"> = {
   "Pré-orçamento": "secondary",
@@ -24,6 +25,7 @@ const STATUS_SEVERITY: Record<PatientStatus, "default" | "secondary" | "destruct
 
 const PatientsPage = () => {
   const { data: patients, addPatient, updatePatient, deletePatient } = usePatients();
+  const { clinic } = useClinic();
   const { toast } = useToast();
   const [selectedStatus, setSelectedStatus] = useState<"Todos" | PatientStatus>("Todos");
   const [formOpen, setFormOpen] = useState(false);
@@ -106,7 +108,6 @@ const PatientsPage = () => {
           </div>
         </PanelHeader>
         <PanelContent>
-          {/* VISUALIZAÇÃO EM TABELA PARA DESKTOP */}
           <div className="hidden md:block">
             <Table>
               <TableHeader>
@@ -114,7 +115,7 @@ const PatientsPage = () => {
                   <TableHead>Nome</TableHead>
                   <TableHead>Idade</TableHead>
                   <TableHead>Telefone</TableHead>
-                  <TableHead>Tratamento</TableHead>
+                  {/* COLUNA DE TRATAMENTO REMOVIDA */}
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                   <TableHead className="w-24 text-center">Ações</TableHead>
@@ -126,7 +127,7 @@ const PatientsPage = () => {
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell>{calculateAge(p.birth_date)} anos</TableCell>
                     <TableCell>+55 {formatPhone(p.phone)}</TableCell>
-                    <TableCell>{p.treatment}</TableCell>
+                    {/* CÉLULA DE TRATAMENTO REMOVIDA */}
                     <TableCell><Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge></TableCell>
                     <TableCell className="text-right">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
                     <TableCell>
@@ -141,14 +142,14 @@ const PatientsPage = () => {
             </Table>
           </div>
 
-          {/* VISUALIZAÇÃO EM CARDS PARA MOBILE */}
           <div className="md:hidden space-y-4">
             {filtered.map((p) => (
               <Panel key={p.id} className="p-4 flex flex-col gap-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-semibold text-lg">{p.name}</p>
-                    <p className="text-sm text-muted-foreground">{p.treatment}</p>
+                    {/* INFORMAÇÃO DE TRATAMENTO MOVIDA PARA O KANBAN */}
+                    <p className="text-sm text-muted-foreground">{p.treatments?.name || 'Tratamento não especificado'}</p>
                   </div>
                   <Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge>
                 </div>

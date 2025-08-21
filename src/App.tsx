@@ -13,13 +13,19 @@ const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Patients = lazy(() => import("./pages/Patients"));
 const Vendas = lazy(() => import("./pages/Vendas"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const ClinicSettingsPage = lazy(() => import("./pages/Settings"));
 
 const queryClient = new QueryClient();
 
+// O RequireAuth agora apenas verifica se o usuário está logado
 const RequireAuth = () => {
   const { session, initializing } = useAuth();
-  if (initializing) return <div className="min-h-screen grid place-items-center"><p className="text-muted-foreground">Carregando...</p></div>;
-  if (!session) return <Navigate to="/auth" replace />;
+  if (initializing) {
+    return <div className="min-h-screen grid place-items-center"><p className="text-muted-foreground">Carregando...</p></div>;
+  }
+  if (!session) {
+    return <Navigate to="/auth" replace />;
+  }
   return <Outlet />;
 };
 
@@ -40,11 +46,11 @@ const App = () => (
                   <Route path="dashboard" element={<Dashboard />} />
                   <Route path="patients" element={<Patients />} />
                   <Route path="vendas" element={<Vendas />} />
+                  <Route path="settings" element={<ClinicSettingsPage />} />
                 </Route>
               </Route>
 
               <Route path="/" element={<Index />} />
-              {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Suspense>
