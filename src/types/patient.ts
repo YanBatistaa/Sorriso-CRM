@@ -12,7 +12,7 @@ export interface Patient {
   cpf: string;
   phone: string;
   email: string | null;
-  status: PatientStatus;
+  status: string;
   treatment_value: number;
   treatment_id: string | null;
   description?: string | null;
@@ -36,4 +36,11 @@ export interface Treatment {
     clinic_id: string;
     name: string;
     is_active: boolean;
+}
+
+export interface KanbanStage {
+  id: string;
+  clinic_id: string;
+  name: string;
+  order: number;
 }

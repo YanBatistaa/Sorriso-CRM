@@ -49,7 +49,8 @@ const SidebarLayout = () => {
       <div className='w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center shrink-0'>
         <Building2 className='h-5 w-5' />
       </div>
-      <span className="font-semibold text-lg truncate">{clinic?.name || "Sorriso CRM"}</span>
+      {/* CORREÇÃO AQUI: Em vez de "Sorriso CRM", usamos uma string vazia como fallback */}
+      <span className="font-semibold text-lg truncate">{clinic?.name || ""}</span>
     </div>
   );
   
@@ -70,7 +71,8 @@ const SidebarLayout = () => {
              <div className='w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center shrink-0'>
                 <Building2 className='h-5 w-5' />
              </div>
-             <span className="truncate">{clinic?.name}</span>
+             {/* CORREÇÃO AQUI TAMBÉM */}
+             <span className="truncate">{clinic?.name || ""}</span>
            </div>
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>

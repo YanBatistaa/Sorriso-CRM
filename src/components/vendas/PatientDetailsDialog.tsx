@@ -1,18 +1,20 @@
-import { Patient, PatientStatus, ALL_STATUSES } from '@/types/patient';
+import { Patient } from '@/types/patient';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '../ui/label';
 import { formatCPF, formatPhone } from '@/lib/formatters';
+import { useKanbanStages } from '@/hooks/useKanbanStages';
 
 interface PatientDetailsDialogProps {
   patient: Patient | null;
   onClose: () => void;
-  onStatusChange: (newStatus: PatientStatus) => void;
+  onStatusChange: (newStatus: string) => void;
   onEdit: () => void;
 }
 
 export function PatientDetailsDialog({ patient, onClose, onStatusChange, onEdit }: PatientDetailsDialogProps) {
+  const { stages } = useKanbanStages();
   if (!patient) return null;
 
   return (
@@ -22,7 +24,7 @@ export function PatientDetailsDialog({ patient, onClose, onStatusChange, onEdit 
           <DialogTitle>{patient.name}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
-          <p><span className="font-semibold">Tratamento:</span> {patient.treatment}</p>
+          <p><span className="font-semibold">Tratamento:</span> {patient.treatments?.name || 'Nenhum'}</p>
           <p><span className="font-semibold">Valor:</span> {patient.treatment_value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
           <p><span className="font-semibold">Telefone:</span> +55 {formatPhone(patient.phone)}</p>
           <p><span className="font-semibold">Email:</span> {patient.email}</p>
@@ -37,13 +39,13 @@ export function PatientDetailsDialog({ patient, onClose, onStatusChange, onEdit 
           
           <div className="space-y-2 border-t pt-4">
             <Label>Mudar Status</Label>
-            <Select value={patient.status} onValueChange={(v) => onStatusChange(v as PatientStatus)}>
+            <Select value={patient.status} onValueChange={(v) => onStatusChange(v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
               <SelectContent>
-                {ALL_STATUSES.map(status => (
-                  <SelectItem key={status} value={status}>{status}</SelectItem>
+                {stages.map(stage => (
+                  <SelectItem key={stage.id} value={stage.name}>{stage.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

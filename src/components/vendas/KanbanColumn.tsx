@@ -1,12 +1,12 @@
 import { Droppable } from 'react-beautiful-dnd';
-import { Patient, PatientStatus } from '@/types/patient';
+import { Patient } from '@/types/patient';
 import { PatientCard } from './PatientCard';
-import { Kanban } from '@/components/ui/kanban'; // Importa a nossa nova UI
+import { Kanban } from '@/components/ui/kanban';
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 
 interface KanbanColumnProps {
-  status: PatientStatus;
+  status: string; // Alterado de PatientStatus para string
   patients: Patient[];
   onClickPatient: (patient: Patient) => void;
 }

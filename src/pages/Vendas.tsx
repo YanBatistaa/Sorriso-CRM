@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usePatients } from '@/hooks/usePatients';
-import { ALL_STATUSES, Patient, PatientStatus } from '@/types/patient';
+import { Patient } from '@/types/patient';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
 import { Kanban } from '@/components/ui/kanban';
 import { KanbanColumn } from '@/components/vendas/KanbanColumn';
@@ -8,9 +8,11 @@ import { PatientDetailsDialog } from '@/components/vendas/PatientDetailsDialog';
 import { PatientForm } from '@/components/patients/PatientForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useKanbanStages } from '@/hooks/useKanbanStages';
 
 const Vendas = () => {
   const { data: serverPatients, updatePatient } = usePatients();
+  const { stages, isLoading: areStagesLoading } = useKanbanStages();
   const { toast } = useToast();
   
   const [patientList, setPatientList] = useState<Patient[]>([]);
@@ -31,20 +33,19 @@ const Vendas = () => {
     const patientToMove = patientList.find(p => p.id === draggableId);
     if (!patientToMove) return;
 
-    const newStatus = destination.droppableId as PatientStatus;
-    const originalPatientList = [...patientList];
+    const newStatus = destination.droppableId; // É apenas uma string agora
+    
+    // Otimisticamente atualiza a UI
+    const updatedPatient = { ...patientToMove, status: newStatus };
+    const newList = patientList.filter(p => p.id !== draggableId);
+    newList.splice(destination.index, 0, updatedPatient);
+    setPatientList(newList);
 
-    setPatientList(currentList => {
-      const listWithoutMovedPatient = currentList.filter(p => p.id !== draggableId);
-      const updatedPatient = { ...patientToMove, status: newStatus };
-      listWithoutMovedPatient.splice(destination.index, 0, updatedPatient);
-      return listWithoutMovedPatient;
-    });
-
+    // Envia a atualização para o backend
     updatePatient({ id: draggableId, status: newStatus })
       .catch(() => {
-        toast({ title: "Erro", description: "Não foi possível mover o paciente. Revertendo.", variant: "destructive" });
-        setPatientList(originalPatientList);
+        toast({ title: "Erro", description: "Não foi possível mover o paciente.", variant: "destructive" });
+        setPatientList(patientList); // Reverte a UI em caso de erro
       });
   };
 
@@ -52,7 +53,7 @@ const Vendas = () => {
     if (selectedPatient) setIsFormOpen(true);
   };
 
-  const handleStatusChangeInDialog = (newStatus: PatientStatus) => {
+  const handleStatusChangeInDialog = (newStatus: string) => {
     if (selectedPatient && selectedPatient.status !== newStatus) {
         updatePatient({ id: selectedPatient.id!, status: newStatus });
         setSelectedPatient(null); 
@@ -72,19 +73,17 @@ const Vendas = () => {
   };
 
   return (
-    // Container principal que define o layout flexível
     <div className="flex flex-col h-full w-full">
       <h1 className="text-3xl font-semibold mb-6 shrink-0">Funil de Vendas</h1>
       
       <DragDropContext onDragEnd={onDragEnd}>
-        {/* Container que permite o scroll horizontal */}
         <div className="flex-1 overflow-x-auto pb-4">
           <Kanban.Board className="h-full items-stretch">
-            {ALL_STATUSES.map(status => (
+            {areStagesLoading ? <p>Carregando funil...</p> : stages.map(stage => (
               <KanbanColumn
-                key={status}
-                status={status}
-                patients={patientList.filter(p => p.status === status)}
+                key={stage.id}
+                status={stage.name} // Sem a conversão para PatientStatus
+                patients={patientList.filter(p => p.status === stage.name)}
                 onClickPatient={setSelectedPatient}
               />
             ))}

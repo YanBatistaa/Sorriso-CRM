@@ -7,15 +7,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2 } from "lucide-react";
 import { usePatients } from "@/hooks/usePatients";
-import type { Patient, PatientStatus } from "@/types/patient";
+import type { Patient } from "@/types/patient";
 import { PatientSummaryPanel } from "@/components/patients/PatientSummaryPanel";
 import { PatientForm } from "@/components/patients/PatientForm";
 import { useToast } from "@/hooks/use-toast";
 import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { formatCPF, formatPhone } from "@/lib/formatters";
-import { useClinic } from "@/hooks/useClinic";
+import { useKanbanStages } from "@/hooks/useKanbanStages";
 
-const STATUS_SEVERITY: Record<PatientStatus, "default" | "secondary" | "destructive" | "outline"> = {
+const STATUS_SEVERITY: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   "Pré-orçamento": "secondary",
   "Em aberto": "outline",
   "Em andamento": "default",
@@ -25,9 +25,9 @@ const STATUS_SEVERITY: Record<PatientStatus, "default" | "secondary" | "destruct
 
 const PatientsPage = () => {
   const { data: patients, addPatient, updatePatient, deletePatient } = usePatients();
-  const { clinic } = useClinic();
+  const { stages } = useKanbanStages();
   const { toast } = useToast();
-  const [selectedStatus, setSelectedStatus] = useState<"Todos" | PatientStatus>("Todos");
+  const [selectedStatus, setSelectedStatus] = useState<string>("Todos");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Patient | null>(null);
   const [toDelete, setToDelete] = useState<Patient | null>(null);
@@ -35,7 +35,8 @@ const PatientsPage = () => {
   useEffect(() => { document.title = "Pacientes • Sorriso CRM"; }, []);
 
   const filtered = useMemo(() => {
-    return selectedStatus === "Todos" ? patients : patients.filter(p => p.status === selectedStatus);
+    if (selectedStatus === "Todos") return patients;
+    return patients.filter(p => p.status === selectedStatus);
   }, [patients, selectedStatus]);
 
   const calculateAge = (birthDate: string) => {
@@ -91,15 +92,13 @@ const PatientsPage = () => {
         <PanelHeader className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 md:p-6">
           <PanelTitle className="text-lg md:text-2xl">Pacientes</PanelTitle>
           <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
-            <Select value={selectedStatus} onValueChange={(v) => setSelectedStatus(v as any)}>
+            <Select value={selectedStatus} onValueChange={(v) => setSelectedStatus(v)}>
               <SelectTrigger className="w-full md:w-48"><SelectValue placeholder="Status" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="Todos">Todos</SelectItem>
-                <SelectItem value="Pré-orçamento">Pré-orçamento</SelectItem>
-                <SelectItem value="Em aberto">Em aberto</SelectItem>
-                <SelectItem value="Em andamento">Em andamento</SelectItem>
-                <SelectItem value="Ganha">Ganha</SelectItem>
-                <SelectItem value="Perdida">Perdida</SelectItem>
+                {stages.map(stage => (
+                    <SelectItem key={stage.id} value={stage.name}>{stage.name}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button onClick={onCreate} className="w-full md:w-auto">
@@ -108,14 +107,15 @@ const PatientsPage = () => {
           </div>
         </PanelHeader>
         <PanelContent>
+          {/* VISUALIZAÇÃO EM TABELA PARA DESKTOP - CORRIGIDA */}
           <div className="hidden md:block">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
-                  <TableHead>Idade</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>CPF</TableHead>
                   <TableHead>Telefone</TableHead>
-                  {/* COLUNA DE TRATAMENTO REMOVIDA */}
                   <TableHead>Status</TableHead>
                   <TableHead className="text-right">Valor</TableHead>
                   <TableHead className="w-24 text-center">Ações</TableHead>
@@ -125,10 +125,11 @@ const PatientsPage = () => {
                 {filtered.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.name}</TableCell>
-                    <TableCell>{calculateAge(p.birth_date)} anos</TableCell>
+                    {/* CÉLULAS DE EMAIL E CPF ADICIONADAS */}
+                    <TableCell className="text-muted-foreground">{p.email || 'Não informado'}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatCPF(p.cpf) || 'Não informado'}</TableCell>
                     <TableCell>+55 {formatPhone(p.phone)}</TableCell>
-                    {/* CÉLULA DE TRATAMENTO REMOVIDA */}
-                    <TableCell><Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge></TableCell>
+                    <TableCell><Badge variant={STATUS_SEVERITY[p.status] || 'default'}>{p.status}</Badge></TableCell>
                     <TableCell className="text-right">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</TableCell>
                     <TableCell>
                       <div className="flex items-center justify-center gap-2">
@@ -142,16 +143,16 @@ const PatientsPage = () => {
             </Table>
           </div>
 
+          {/* VISUALIZAÇÃO EM CARDS PARA MOBILE */}
           <div className="md:hidden space-y-4">
             {filtered.map((p) => (
               <Panel key={p.id} className="p-4 flex flex-col gap-4">
                 <div className="flex justify-between items-start">
                   <div>
                     <p className="font-semibold text-lg">{p.name}</p>
-                    {/* INFORMAÇÃO DE TRATAMENTO MOVIDA PARA O KANBAN */}
                     <p className="text-sm text-muted-foreground">{p.treatments?.name || 'Tratamento não especificado'}</p>
                   </div>
-                  <Badge variant={STATUS_SEVERITY[p.status]}>{p.status}</Badge>
+                  <Badge variant={STATUS_SEVERITY[p.status] || 'default'}>{p.status}</Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm border-t pt-4">
                   <div className="font-medium">Idade:</div>
@@ -159,9 +160,12 @@ const PatientsPage = () => {
                   
                   <div className="font-medium">Telefone:</div>
                   <div>+55 {formatPhone(p.phone)}</div>
+
+                  <div className="font-medium">Email:</div>
+                  <div className="truncate">{p.email || 'Não informado'}</div>
                   
                   <div className="font-medium">CPF:</div>
-                  <div>{formatCPF(p.cpf)}</div>
+                  <div>{formatCPF(p.cpf) || 'Não informado'}</div>
                   
                   <div className="font-medium">Valor:</div>
                   <div className="font-semibold">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
@@ -173,7 +177,6 @@ const PatientsPage = () => {
               </Panel>
             ))}
           </div>
-
         </PanelContent>
       </Panel>
 

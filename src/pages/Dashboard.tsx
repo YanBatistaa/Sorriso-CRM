@@ -8,17 +8,15 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RevenueByStatusChart } from "@/components/dashboard/RevenueByStatusChart";
 import { NewPatientsFlowChart } from "@/components/dashboard/NewPatientsFlowChart";
 
-// Importações para o novo fluxo de configuração
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useClinic } from "@/hooks/useClinic";
 import { useAuth } from "@/hooks/useAuth";
-import { ClinicSetupForm } from "@/components/setup/ClinicSetupForm";
+import { ClinicSetupWizard } from "@/components/setup/ClinicSetupWizard"; // ATUALIZADO
 
 const Dashboard = () => {
   const { data: patients } = usePatients();
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('month');
   
-  // Lógica do Modal de Configuração
   const { clinic, isLoading: isClinicLoading } = useClinic();
   const { signOut } = useAuth();
   const [showSetupModal, setShowSetupModal] = useState(false);
@@ -28,15 +26,13 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    // Quando terminar de carregar, verifica se a clínica existe.
-    // Se não existir, abre o modal.
     if (!isClinicLoading && !clinic) {
       setShowSetupModal(true);
     }
   }, [isClinicLoading, clinic]);
 
-
   const kpis = useMemo(() => {
+    // ... (lógica dos kpis permanece a mesma) ...
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     const monthPatients = patients.filter(p => new Date(p.created_at!) >= monthStart);
@@ -68,12 +64,11 @@ const Dashboard = () => {
   }, [patients]);
 
   const newPatientsData = useMemo(() => {
+    // ... (lógica dos dados do gráfico permanece a mesma) ...
     const counts: Record<string, number> = {};
-    
     patients.forEach(p => {
       const d = new Date(p.created_at!);
       if (!isValid(d)) return;
-
       let key = '';
       if (timeRange === 'month') {
         key = format(d, "yyyy-MM");
@@ -82,10 +77,8 @@ const Dashboard = () => {
         const year = getYear(d);
         key = `${year}-S${String(week).padStart(2, '0')}`;
       }
-      
       counts[key] = (counts[key] || 0) + 1;
     });
-
     return Object.entries(counts).sort(([a], [b]) => a.localeCompare(b)).map(([period, total]) => ({ period, total }));
   }, [patients, timeRange]);
 
@@ -93,7 +86,7 @@ const Dashboard = () => {
     <>
       <Dialog open={showSetupModal}>
         <DialogContent className="max-w-2xl" hideCloseButton>
-          <ClinicSetupForm
+          <ClinicSetupWizard
             onSuccess={() => setShowSetupModal(false)}
             onExit={signOut}
           />
@@ -102,7 +95,7 @@ const Dashboard = () => {
     
       <div className="space-y-6">
         <h1 className="text-3xl font-semibold">Dashboard</h1>
-        
+        {/* ... (resto do conteúdo do dashboard) ... */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           <Panel>
             <PanelHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
