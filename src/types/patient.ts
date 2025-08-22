@@ -44,3 +44,19 @@ export interface KanbanStage {
   name: string;
   order: number;
 }
+
+export interface ClinicMember {
+  id: string;
+  role: 'admin' | 'doctor' | 'receptionist';
+  user_id: string;
+  email: string; // Agora o email vem diretamente no objeto
+}
+
+export interface Invitation {
+  id: string;
+  clinic_id: string;
+  email: string;
+  role: 'admin' | 'doctor' | 'receptionist';
+  status: 'pending' | 'accepted' | 'expired';
+  invited_by: string;
+}

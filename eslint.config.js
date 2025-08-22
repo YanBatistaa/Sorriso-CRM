@@ -4,14 +4,18 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
-export default tseslint.config(
-  { ignores: ["dist"] },
+// A correção é adicionar os parêntesis retos aqui:
+export default tseslint.config([
+  { 
+    ignores: ["dist"] 
+  },
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+      },
     },
     plugins: {
       "react-hooks": reactHooks,
@@ -24,6 +28,10 @@ export default tseslint.config(
         { allowConstantExport: true },
       ],
       "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off", // Adicionado para ser mais permissivo
     },
-  }
-);
+  },
+  // Incluir configurações recomendadas como objetos separados no array
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+]);

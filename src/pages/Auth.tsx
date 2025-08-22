@@ -22,7 +22,7 @@ const Auth = () => {
   }, [session, navigate]);
 
   useEffect(() => {
-    document.title = "Entrar • Sorriso CRM";
+    document.title = "Entrar • Syncro";
   }, []);
 
   const handleSubmit = async () => {

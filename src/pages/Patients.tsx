@@ -32,7 +32,7 @@ const PatientsPage = () => {
   const [editing, setEditing] = useState<Patient | null>(null);
   const [toDelete, setToDelete] = useState<Patient | null>(null);
 
-  useEffect(() => { document.title = "Pacientes • Sorriso CRM"; }, []);
+  useEffect(() => { document.title = "Pacientes • Syncro"; }, []);
 
   const filtered = useMemo(() => {
     if (selectedStatus === "Todos") return patients;

@@ -14,6 +14,7 @@ const Patients = lazy(() => import("./pages/Patients"));
 const Vendas = lazy(() => import("./pages/Vendas"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const ClinicSettingsPage = lazy(() => import("./pages/Settings"));
+const AcceptInvitePage = lazy(() => import("./pages/AcceptInvite"));
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,11 @@ const App = () => (
                   <Route path="settings" element={<ClinicSettingsPage />} />
                 </Route>
               </Route>
+               {/* Rota de convite será pública, pois o utilizador pode não ter uma conta ainda */}
+               <Route path="/accept-invite" element={<AcceptInvitePage />} /> 
+
+               <Route path="/auth" element={<AuthPage />} />
+             
 
               <Route path="/" element={<Index />} />
               <Route path="*" element={<NotFound />} />

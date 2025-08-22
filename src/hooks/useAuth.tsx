@@ -18,9 +18,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
+    // Função para verificar e processar um convite após o login
+    const processInvitation = async (user: User) => {
+      // O Supabase armazena os dados do convite em user_metadata
+      const { clinic_id, role } = user.user_metadata;
+
+      if (clinic_id && role) {
+        console.log(`Utilizador ${user.email} aceitou o convite para a clínica ${clinic_id} com a função ${role}.`);
+
+        // Insere o utilizador como membro da clínica
+        const { error } = await supabase.from('clinic_members').insert({
+          user_id: user.id,
+          clinic_id: clinic_id,
+          role: role,
+        });
+
+        if (error) {
+          console.error("Erro ao adicionar membro à clínica:", error);
+          return;
+        }
+
+        // Limpa os metadados do convite para não serem processados novamente
+        await supabase.auth.updateUser({
+          data: {
+            clinic_id: null,
+            role: null,
+          }
+        });
+        
+        console.log("Membro adicionado à clínica com sucesso.");
+      }
+    };
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, sess) => {
       setSession(sess);
       setUser(sess?.user ?? null);
+
+      // Se o evento for SIGNED_IN, verificamos se veio de um convite
+      if (event === "SIGNED_IN" && sess?.user) {
+        processInvitation(sess.user);
+      }
     });
 
     supabase.auth.getSession().then(({ data }) => {

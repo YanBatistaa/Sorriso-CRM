@@ -22,7 +22,7 @@ const Dashboard = () => {
   const [showSetupModal, setShowSetupModal] = useState(false);
 
   useEffect(() => {
-    document.title = "Dashboard • Sorriso CRM";
+    document.title = "Dashboard • Syncro";
   }, []);
 
   useEffect(() => {

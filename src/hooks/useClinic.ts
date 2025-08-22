@@ -10,35 +10,43 @@ export function useClinic() {
   const queryClient = useQueryClient();
 
   const query = useQuery({
-    queryKey: CLINIC_QUERY_KEY,
+    queryKey: [CLINIC_QUERY_KEY, user?.id],
     queryFn: async () => {
       if (!user) return null;
-      const { data, error } = await supabase
-        .from("clinics")
-        .select("*")
-        .eq("owner_id", user.id)
+      // A query para encontrar a clínica do utilizador agora é feita através da tabela de membros
+      const { data: memberData, error: memberError } = await supabase
+        .from("clinic_members")
+        .select("clinics(*)") // O Supabase faz o "join" automaticamente
+        .eq("user_id", user.id)
+        .limit(1)
         .single();
       
-      if (error && error.code !== 'PGRST116') {
-        throw error;
+      if (memberError && memberError.code !== 'PGRST116') { // PGRST116 = 0 rows
+        throw memberError;
       }
-      return data as Clinic | null;
+      // O resultado vem aninhado, por isso retornamos memberData.clinics
+      return memberData ? memberData.clinics as Clinic : null;
     },
     enabled: !!user,
   });
 
   const createClinicMutation = useMutation({
-    mutationFn: async (payload: Omit<Clinic, "id" | "owner_id" | "logo_url">) => {
-      if (!user) throw new Error("Usuário não autenticado");
-      const { data, error } = await supabase
-        .from("clinics")
-        .insert({ ...payload, owner_id: user.id })
-        .select()
-        .single();
+    // O payload corresponde aos argumentos da nossa função RPC
+    mutationFn: async (payload: { name: string, clinic_type: string, employee_count: number }) => {
+      if (!user) throw new Error("Utilizador não autenticado");
+
+      // Chamada à função RPC
+      const { data, error } = await supabase.rpc('create_clinic_with_admin', {
+        clinic_name: payload.name,
+        clinic_type: payload.clinic_type,
+        employee_count: payload.employee_count
+      });
+
       if (error) throw error;
       return data as Clinic;
     },
     onSuccess: () => {
+      // Invalida a query para forçar a busca dos novos dados da clínica
       queryClient.invalidateQueries({ queryKey: CLINIC_QUERY_KEY });
     },
   });
@@ -56,7 +64,6 @@ export function useClinic() {
         return data as Clinic;
     },
     onSuccess: (data) => {
-        // Atualiza o cache com os dados novos para refletir na UI imediatamente
         queryClient.setQueryData(CLINIC_QUERY_KEY, data);
     }
   });

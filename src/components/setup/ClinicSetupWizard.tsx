@@ -1,3 +1,6 @@
+// O código é praticamente o mesmo, apenas a chamada a `createClinic` muda.
+// Para garantir, substitua o ficheiro inteiro.
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +30,6 @@ export const ClinicSetupWizard = ({ onSuccess, onExit }: ClinicSetupWizardProps)
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Dados do formulário
   const [clinicName, setClinicName] = useState("");
   const [clinicType, setClinicType] = useState<ClinicType | "">("");
   const [employeeCount, setEmployeeCount] = useState<number | string>("");
@@ -48,7 +50,7 @@ export const ClinicSetupWizard = ({ onSuccess, onExit }: ClinicSetupWizardProps)
   const loadTemplate = () => {
     if (!clinicType) return;
     const template = procedureTemplates[clinicType];
-    const newProcedures = [...new Set([...procedures, ...template])]; // Evita duplicados
+    const newProcedures = [...new Set([...procedures, ...template])];
     setProcedures(newProcedures);
   };
 
@@ -70,7 +72,13 @@ export const ClinicSetupWizard = ({ onSuccess, onExit }: ClinicSetupWizardProps)
 
     setIsLoading(true);
     try {
-      const newClinic = await createClinic({ name: clinicName, clinic_type: clinicType, employee_count: Number(employeeCount) || 0 });
+      // ATUALIZAÇÃO: A chamada agora corresponde à nova função RPC
+      const newClinic = await createClinic({ 
+        name: clinicName, 
+        clinic_type: clinicType, 
+        employee_count: Number(employeeCount) || 0 
+      });
+      
       const procedureList = procedures.map(name => ({ name, clinic_id: newClinic.id }));
 
       if (procedureList.length > 0) {
@@ -89,7 +97,6 @@ export const ClinicSetupWizard = ({ onSuccess, onExit }: ClinicSetupWizardProps)
     <TooltipProvider>
       <div className="space-y-4 p-2">
         <Progress value={(step / 3) * 100} className="w-full" />
-
         {step === 1 && (
             <div className="space-y-6 animate-in fade-in-50">
                 <div className="text-center">
@@ -121,7 +128,6 @@ export const ClinicSetupWizard = ({ onSuccess, onExit }: ClinicSetupWizardProps)
                 </div>
             </div>
         )}
-
         {step === 2 && (
             <div className="space-y-6 animate-in fade-in-50">
                 <div className="text-center">
@@ -158,7 +164,6 @@ export const ClinicSetupWizard = ({ onSuccess, onExit }: ClinicSetupWizardProps)
                 </div>
             </div>
         )}
-
         {step === 3 && (
             <div className="space-y-6 text-center animate-in fade-in-50 p-8">
                 <PartyPopper className="h-16 w-16 text-green-500 mx-auto" />
@@ -167,7 +172,6 @@ export const ClinicSetupWizard = ({ onSuccess, onExit }: ClinicSetupWizardProps)
                 <Button onClick={onSuccess}>Ir para o Dashboard</Button>
             </div>
         )}
-
         {step < 3 && (
             <div className="flex flex-col-reverse sm:flex-row sm:justify-between gap-2 pt-4">
                 <Button variant="outline" onClick={step === 1 ? onExit : handlePreviousStep}>
