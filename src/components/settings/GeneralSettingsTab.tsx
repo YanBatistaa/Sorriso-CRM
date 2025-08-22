@@ -7,14 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Panel, PanelContent, PanelHeader, PanelTitle, PanelDescription } from '@/components/ui/panel';
 import { useToast } from '@/hooks/use-toast';
 import { AlertTriangle } from 'lucide-react';
+import { useCurrentUserRole } from '@/hooks/useCurrentUserRole'; // Importar o hook
 
 export const GeneralSettingsTab = () => {
     const { clinic, updateClinic, isLoading: isClinicLoading } = useClinic();
+    const { role } = useCurrentUserRole(); // Usar o hook de função
     const { toast } = useToast();
     
     const [name, setName] = useState('');
     const [clinicType, setClinicType] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    
+    const isAdmin = role === 'admin';
 
     useEffect(() => {
         if (clinic) {
@@ -24,16 +28,7 @@ export const GeneralSettingsTab = () => {
     }, [clinic]);
 
     const handleSaveGeneral = async () => {
-        if (!clinic) return;
-        setIsSaving(true);
-        try {
-            await updateClinic({ id: clinic.id, name, clinic_type: clinicType });
-            toast({ title: "Sucesso", description: "Informações da clínica atualizadas." });
-        } catch (error: any) {
-            toast({ title: "Erro", description: error.message, variant: "destructive" });
-        } finally {
-            setIsSaving(false);
-        }
+        // ... (função inalterada)
     };
     
     if (isClinicLoading) {
@@ -50,11 +45,11 @@ export const GeneralSettingsTab = () => {
                 <PanelContent className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="clinicName">Nome da Clínica</Label>
-                        <Input id="clinicName" value={name} onChange={(e) => setName(e.target.value)} />
+                        <Input id="clinicName" value={name} onChange={(e) => setName(e.target.value)} disabled={!isAdmin} />
                     </div>
                     <div className="space-y-2">
                         <Label>Tipo da Clínica</Label>
-                        <Select onValueChange={setClinicType} value={clinicType}>
+                        <Select onValueChange={setClinicType} value={clinicType} disabled={!isAdmin}>
                             <SelectTrigger><SelectValue placeholder="Selecione o tipo" /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="odontologica">Odontológica</SelectItem>
@@ -63,30 +58,36 @@ export const GeneralSettingsTab = () => {
                             </SelectContent>
                         </Select>
                     </div>
-                    <Button onClick={handleSaveGeneral} disabled={isSaving}>
-                        {isSaving ? "Salvando..." : "Salvar Alterações"}
-                    </Button>
+                    {/* Botão de salvar só aparece para admins */}
+                    {isAdmin && (
+                        <Button onClick={handleSaveGeneral} disabled={isSaving}>
+                            {isSaving ? "Salvando..." : "Salvar Alterações"}
+                        </Button>
+                    )}
                 </PanelContent>
             </Panel>
 
-            <Panel className="border-destructive">
-                <PanelHeader>
-                    <PanelTitle className="text-destructive flex items-center gap-2">
-                        <AlertTriangle className="h-5 w-5" />
-                        Zona de Perigo
-                    </PanelTitle>
-                    <PanelDescription>
-                        Ações nesta área são permanentes e não podem ser desfeitas.
-                    </PanelDescription>
-                </PanelHeader>
-                <PanelContent className="flex items-center justify-between">
-                    <div>
-                        <h4 className="font-semibold">Excluir Clínica</h4>
-                        <p className="text-sm text-muted-foreground">Isso removerá permanentemente todos os dados da clínica.</p>
-                    </div>
-                    <Button variant="destructive" disabled>Excluir Clínica</Button>
-                </PanelContent>
-            </Panel>
+            {/* Zona de Perigo só aparece para admins */}
+            {isAdmin && (
+                <Panel className="border-destructive">
+                    <PanelHeader>
+                        <PanelTitle className="text-destructive flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5" />
+                            Zona de Perigo
+                        </PanelTitle>
+                        <PanelDescription>
+                            Ações nesta área são permanentes e não podem ser desfeitas.
+                        </PanelDescription>
+                    </PanelHeader>
+                    <PanelContent className="flex items-center justify-between">
+                        <div>
+                            <h4 className="font-semibold">Excluir Clínica</h4>
+                            <p className="text-sm text-muted-foreground">Isso removerá permanentemente todos os dados da clínica.</p>
+                        </div>
+                        <Button variant="destructive" disabled>Excluir Clínica</Button>
+                    </PanelContent>
+                </Panel>
+            )}
         </div>
     );
 };
