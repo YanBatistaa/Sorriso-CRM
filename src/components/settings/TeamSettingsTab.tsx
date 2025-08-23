@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
 import { AddMemberDialog } from './AddMemberDialog';
+import { EditMemberDialog } from './EditMemberDialog'; // Importar o novo modal de edição
 
 export const TeamSettingsTab = () => {
     const { user } = useAuth();
@@ -15,7 +16,7 @@ export const TeamSettingsTab = () => {
         <Panel>
             <PanelHeader>
                 <PanelTitle>Equipe</PanelTitle>
-                <PanelDescription>Convide e gira os membros da sua clínica.</PanelDescription>
+                <PanelDescription>Adicione e gira os membros da sua clínica.</PanelDescription>
             </PanelHeader>
             <PanelContent className="space-y-6">
                 <div className="flex justify-end">
@@ -28,6 +29,7 @@ export const TeamSettingsTab = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>Nome</TableHead>
                                     <TableHead>Email</TableHead>
                                     <TableHead>Função</TableHead>
                                     <TableHead className="text-right">Ações</TableHead>
@@ -35,17 +37,22 @@ export const TeamSettingsTab = () => {
                             </TableHeader>
                             <TableBody>
                                 {isLoading ? (
-                                    <TableRow><TableCell colSpan={3} className="text-center h-24">Carregando membros...</TableCell></TableRow>
+                                    <TableRow><TableCell colSpan={4} className="text-center h-24">Carregando equipe...</TableCell></TableRow>
                                 ) : (
                                     members.map(member => (
                                         <TableRow key={member.id}>
-                                            <TableCell className="font-medium">{member.email}</TableCell>
+                                            <TableCell className="font-medium">{member.full_name || 'Nome não definido'}</TableCell>
+                                            <TableCell className="text-muted-foreground">{member.email}</TableCell>
                                             <TableCell><Badge variant="outline">{member.role}</Badge></TableCell>
                                             <TableCell className="text-right">
                                                 {member.user_id !== user?.id && (
-                                                    <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteMember(member.id)}>
-                                                        <Trash2 className="h-4 w-4"/>
-                                                    </Button>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        {/* Usar o novo componente de edição */}
+                                                        <EditMemberDialog member={member} />
+                                                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteMember(member.id)}>
+                                                            <Trash2 className="h-4 w-4"/>
+                                                        </Button>
+                                                    </div>
                                                 )}
                                             </TableCell>
                                         </TableRow>

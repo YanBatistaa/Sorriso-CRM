@@ -14,7 +14,7 @@ import { getSpecialistColorClass } from '@/lib/color-utils';
 
 export interface SpecialistInfo {
     fullName: string;
-    colorClass: string;
+    tagColor: string;
 }
 
 const Vendas = () => {
@@ -33,7 +33,8 @@ const Vendas = () => {
     specialists.forEach(s => {
         map.set(s.user_id, {
             fullName: s.full_name || s.email,
-            colorClass: getSpecialistColorClass(s.user_id)
+            // Usar a cor da base de dados, ou uma cor padrão se não estiver definida
+            tagColor: s.tag_color || '#64748b' 
         });
     });
     return map;

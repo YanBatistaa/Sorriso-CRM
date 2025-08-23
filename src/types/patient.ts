@@ -53,6 +53,7 @@ export interface ClinicMember {
   email: string; // Agora o email vem diretamente no objeto
   can_view_all_patients: boolean;
   full_name: string | null;
+  tag_color: string | null; 
 }
 
 export interface Invitation {
