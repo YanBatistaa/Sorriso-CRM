@@ -3,13 +3,12 @@ import { GeneralSettingsTab } from "@/components/settings/GeneralSettingsTab";
 import { ProceduresSettingsTab } from "@/components/settings/ProceduresSettingsTab";
 import { PersonalizationSettingsTab } from "@/components/settings/PersonalizationSettingsTab";
 import { TeamSettingsTab } from "@/components/settings/TeamSettingsTab";
-import { useCurrentUserRole } from "@/hooks/useCurrentUserRole"; // Importar o novo hook
+import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
 
 const ClinicSettingsPage = () => {
-    const { role } = useCurrentUserRole();
+    const { role, isLoading } = useCurrentUserRole();
 
-    // Renderiza um estado de carregamento enquanto a função do utilizador é determinada
-    if (role === null) {
+    if (isLoading) {
         return <div className="p-4 text-center">A verificar permissões...</div>;
     }
     
@@ -21,8 +20,7 @@ const ClinicSettingsPage = () => {
                     <TabsTrigger value="general">Geral</TabsTrigger>
                     <TabsTrigger value="treatments">Procedimentos</TabsTrigger>
                     <TabsTrigger value="personalization">Personalização</TabsTrigger>
-                    {/* A aba Equipa só é visível para admins */}
-                    {role === 'admin' && <TabsTrigger value="team">Equipa</TabsTrigger>}
+                    {role === 'admin' && <TabsTrigger value="team">Equipe</TabsTrigger>}
                 </TabsList>
 
                 <TabsContent value="general">
@@ -37,7 +35,6 @@ const ClinicSettingsPage = () => {
                     <PersonalizationSettingsTab />
                 </TabsContent>
                 
-                {/* O conteúdo da aba Equipa só é renderizado para admins */}
                 {role === 'admin' && (
                     <TabsContent value="team">
                         <TeamSettingsTab />

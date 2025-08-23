@@ -16,6 +16,7 @@ export interface Patient {
   treatment_value: number;
   treatment_id: string | null;
   description?: string | null;
+  assigned_specialist_id: string | null;
   // Adicionado para receber o nome do tratamento da tabela relacionada
   treatments: {
     name: string;
@@ -50,6 +51,8 @@ export interface ClinicMember {
   role: 'admin' | 'doctor' | 'receptionist';
   user_id: string;
   email: string; // Agora o email vem diretamente no objeto
+  can_view_all_patients: boolean;
+  full_name: string | null;
 }
 
 export interface Invitation {

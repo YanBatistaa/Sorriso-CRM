@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Trash2, Edit, Check, X } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { Treatment } from '@/types/patient';
-import { useCurrentUserRole } from '@/hooks/useCurrentUserRole'; // Importar o hook
+import { useCurrentUserRole } from '@/hooks/useCurrentUserRole';
 
 export const ProceduresSettingsTab = () => {
     const { data: treatments, addTreatment, updateTreatment, deleteTreatment, isLoading: areTreatmentsLoading } = useTreatments();
@@ -19,7 +19,36 @@ export const ProceduresSettingsTab = () => {
     const [editingTreatment, setEditingTreatment] = useState<Partial<Treatment> | null>(null);
     const isAdmin = role === 'admin';
 
-    // ... (funções de handle inalteradas)
+    const handleAddProcedure = async () => {
+        if (!newProcedure.trim()) return;
+        try {
+            await addTreatment({ name: newProcedure });
+            setNewProcedure('');
+            toast({ title: "Sucesso", description: "Procedimento adicionado." });
+        } catch (error: any) {
+            toast({ title: "Erro", description: error.message, variant: "destructive" });
+        }
+    };
+    
+    const handleUpdateProcedure = async () => {
+        if (!editingTreatment || !editingTreatment.id || !editingTreatment.name?.trim()) return;
+        try {
+            await updateTreatment({ id: editingTreatment.id, name: editingTreatment.name });
+            setEditingTreatment(null);
+            toast({ title: "Sucesso", description: "Procedimento atualizado." });
+        } catch (error: any) {
+            toast({ title: "Erro", description: error.message, variant: "destructive" });
+        }
+    };
+
+    const handleDeleteProcedure = async (id: string) => {
+        try {
+            await deleteTreatment(id);
+            toast({ title: "Sucesso", description: "Procedimento removido." });
+        } catch (error: any) {
+            toast({ title: "Erro", description: `Falha ao remover o procedimento. ${error.message}`, variant: "destructive" });
+        }
+    };
 
     return (
         <Panel>
@@ -28,7 +57,6 @@ export const ProceduresSettingsTab = () => {
                 <PanelDescription>Adicione ou edite os procedimentos oferecidos pela sua clínica.</PanelDescription>
             </PanelHeader>
             <PanelContent className="space-y-6">
-                {/* Formulário para adicionar só aparece para admins */}
                 {isAdmin && (
                     <div className='flex gap-2'>
                         <Input 
@@ -54,7 +82,6 @@ export const ProceduresSettingsTab = () => {
                                     ) : (
                                         <span>{t.name}</span>
                                     )}
-                                    {/* Ações de editar/apagar só aparecem para admins */}
                                     {isAdmin && (
                                         <div className="flex items-center gap-1">
                                             {editingTreatment?.id === t.id ? (
@@ -71,7 +98,16 @@ export const ProceduresSettingsTab = () => {
                                                     <Button variant="ghost" size="icon" className='h-8 w-8 text-destructive hover:bg-destructive/10'><Trash2 className='h-4 w-4'/></Button>
                                                 </AlertDialogTrigger>
                                                 <AlertDialogContent>
-                                                    {/* ... (conteúdo do AlertDialog inalterado) ... */}
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Esta ação não pode ser desfeita. Pacientes com este procedimento serão desvinculados, mas não excluídos.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeleteProcedure(t.id)}>Excluir</AlertDialogAction>
+                                                    </AlertDialogFooter>
                                                 </AlertDialogContent>
                                             </AlertDialog>
                                         </div>

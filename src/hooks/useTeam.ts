@@ -21,7 +21,8 @@ export function useTeam() {
   });
 
   const createMember = useMutation({
-    mutationFn: async (payload: { member_name: string, birth_date: string, role: string }) => {
+    // Adicionar o novo parâmetro ao payload
+    mutationFn: async (payload: { member_name: string, birth_date: string, role: string, can_view_all_patients: boolean }) => {
         if (!clinic) throw new Error("Clínica não encontrada");
 
         const { data, error } = await supabase.functions.invoke('create-team-member', {
@@ -39,6 +40,7 @@ export function useTeam() {
         queryClient.invalidateQueries({ queryKey: [TEAM_QUERY_KEY, clinic?.id] });
     }
   });
+
 
   const deleteMember = useMutation({
     mutationFn: async (memberId: string) => {

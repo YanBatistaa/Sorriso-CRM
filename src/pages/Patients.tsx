@@ -14,6 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Panel, PanelContent, PanelHeader, PanelTitle } from "@/components/ui/panel";
 import { formatCPF, formatPhone } from "@/lib/formatters";
 import { useKanbanStages } from "@/hooks/useKanbanStages";
+import { useTeam } from "@/hooks/useTeam";
+import { useCurrentUserRole } from "@/hooks/useCurrentUserRole";
+import { Label } from "@/components/ui/label";
 
 const STATUS_SEVERITY: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
   "Pré-orçamento": "secondary",
@@ -26,11 +29,16 @@ const STATUS_SEVERITY: Record<string, "default" | "secondary" | "destructive" | 
 const PatientsPage = () => {
   const { data: patients, addPatient, updatePatient, deletePatient } = usePatients();
   const { stages } = useKanbanStages();
+  const { members, isLoading: isLoadingTeam } = useTeam();
+  const { role } = useCurrentUserRole();
   const { toast } = useToast();
   const [selectedStatus, setSelectedStatus] = useState<string>("Todos");
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Patient | null>(null);
   const [toDelete, setToDelete] = useState<Patient | null>(null);
+
+  const specialists = useMemo(() => members.filter(m => m.role === 'doctor'), [members]);
+  const isAdminOrReceptionist = role === 'admin' || role === 'receptionist';
 
   useEffect(() => { document.title = "Pacientes • Syncro"; }, []);
 
@@ -49,6 +57,21 @@ const PatientsPage = () => {
       age--;
     }
     return age;
+  };
+
+  const getSpecialistName = (specialistId: string | null) => {
+    if (!specialistId) return "Nenhum";
+    const specialist = specialists.find(s => s.user_id === specialistId);
+    return specialist?.full_name || specialist?.email || "Desconhecido";
+  };
+
+  const handleAssignSpecialist = async (patientId: string, specialistId: string | null) => {
+    try {
+        await updatePatient({ id: patientId, assigned_specialist_id: specialistId });
+        toast({ title: "Sucesso", description: "Especialista atribuído." });
+    } catch (error: any) {
+        toast({ title: "Erro", description: "Não foi possível atribuir o especialista.", variant: "destructive" });
+    }
   };
 
   const onCreate = () => { setEditing(null); setFormOpen(true); };
@@ -107,8 +130,7 @@ const PatientsPage = () => {
           </div>
         </PanelHeader>
         <PanelContent>
-          {/* VISUALIZAÇÃO EM TABELA PARA DESKTOP - CORRIGIDA */}
-          <div className="hidden md:block">
+          <div className="hidden md:block border rounded-md">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -125,8 +147,7 @@ const PatientsPage = () => {
                 {filtered.map((p) => (
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.name}</TableCell>
-                    {/* CÉLULAS DE EMAIL E CPF ADICIONADAS */}
-                    <TableCell className="text-muted-foreground">{p.email || 'Não informado'}</TableCell>
+                    <TableCell className="text-muted-foreground truncate" style={{ maxWidth: 150 }}>{p.email || 'Não informado'}</TableCell>
                     <TableCell className="text-muted-foreground">{formatCPF(p.cpf) || 'Não informado'}</TableCell>
                     <TableCell>+55 {formatPhone(p.phone)}</TableCell>
                     <TableCell><Badge variant={STATUS_SEVERITY[p.status] || 'default'}>{p.status}</Badge></TableCell>
@@ -143,7 +164,6 @@ const PatientsPage = () => {
             </Table>
           </div>
 
-          {/* VISUALIZAÇÃO EM CARDS PARA MOBILE */}
           <div className="md:hidden space-y-4">
             {filtered.map((p) => (
               <Panel key={p.id} className="p-4 flex flex-col gap-4">
@@ -155,12 +175,12 @@ const PatientsPage = () => {
                   <Badge variant={STATUS_SEVERITY[p.status] || 'default'}>{p.status}</Badge>
                 </div>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm border-t pt-4">
-                  <div className="font-medium">Idade:</div>
-                  <div>{calculateAge(p.birth_date)} anos</div>
+                  <div className="font-medium">Especialista:</div>
+                  <div>{getSpecialistName(p.assigned_specialist_id)}</div>
                   
                   <div className="font-medium">Telefone:</div>
                   <div>+55 {formatPhone(p.phone)}</div>
-
+                  
                   <div className="font-medium">Email:</div>
                   <div className="truncate">{p.email || 'Não informado'}</div>
                   
@@ -170,9 +190,31 @@ const PatientsPage = () => {
                   <div className="font-medium">Valor:</div>
                   <div className="font-semibold">{p.treatment_value?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
                 </div>
+
+                {isAdminOrReceptionist && (
+                    <div className="space-y-2 border-t pt-4">
+                        <Label>Atribuir Especialista</Label>
+                        <Select
+                            value={p.assigned_specialist_id || 'null'}
+                            onValueChange={(value) => handleAssignSpecialist(p.id!, value === 'null' ? null : value)}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder={isLoadingTeam ? "Carregando..." : "Nenhum"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="null">Nenhum</SelectItem>
+                                {specialists.map(specialist => (
+                                    <SelectItem key={specialist.user_id} value={specialist.user_id}>
+                                        {specialist.full_name || specialist.email}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                )}
+                
                 <div className="flex justify-end gap-2 border-t pt-4">
-                  <Button variant="secondary" size="icon" onClick={() => onEdit(p)}><Edit className="h-4 w-4" /></Button>
-                  <Button variant="destructive" size="icon" onClick={() => setToDelete(p)}><Trash2 className="h-4 w-4" /></Button>
+                  <Button variant="secondary" size="sm" onClick={() => onEdit(p)}>Ver Detalhes</Button>
                 </div>
               </Panel>
             ))}

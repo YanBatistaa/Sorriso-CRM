@@ -8,18 +8,16 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { clinic_id, clinic_name, member_name, birth_date, role } = await req.json();
+    // Adicionar a nova propriedade ao extrair do body do pedido
+    const { clinic_id, clinic_name, member_name, birth_date, role, can_view_all_patients } = await req.json();
 
-    // Validar dados de entrada
     if (!clinic_id || !clinic_name || !member_name || !birth_date || !role) {
-      throw new Error("Todos os campos são obrigatórios: clinic_id, clinic_name, member_name, birth_date, role");
+      throw new Error("Faltam campos obrigatórios.");
     }
 
-    // 1. Gerar o e-mail e a palavra-passe conforme a lógica definida
     const normalizedClinicName = clinic_name.replace(/\s+/g, '').toLowerCase();
     const normalizedMemberName = member_name.split(' ')[0].toLowerCase();
     const email = `${normalizedMemberName}.${normalizedClinicName}@syncro.com`;
-    
     const password = format(new Date(birth_date), "ddMMyyyy");
 
     const supabaseAdmin = createClient(
@@ -27,18 +25,14 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
-    // 2. Criar o utilizador no Supabase Auth
     const { data: { user }, error: creationError } = await supabaseAdmin.auth.admin.createUser({
       email: email,
       password: password,
-      email_confirm: true, // Marcar o e-mail como confirmado, pois o admin está a criá-lo
-      user_metadata: {
-        full_name: member_name
-      }
+      email_confirm: true,
+      user_metadata: { full_name: member_name }
     });
 
     if (creationError) {
-      // Tratar erro comum de e-mail já existente
       if (creationError.message.includes('unique constraint')) {
         throw new Error(`O e-mail gerado '${email}' já está em uso.`);
       }
@@ -49,11 +43,12 @@ Deno.serve(async (req) => {
         throw new Error("Falha ao criar o utilizador.");
     }
 
-    // 3. Associar o novo utilizador à clínica na tabela clinic_members
+    // Incluir o valor de 'can_view_all_patients' na inserção
     const { error: memberError } = await supabaseAdmin.from('clinic_members').insert({
       clinic_id: clinic_id,
       user_id: user.id,
-      role: role
+      role: role,
+      can_view_all_patients: role === 'doctor' ? can_view_all_patients : false // Apenas relevante para 'doctor'
     });
 
     if (memberError) throw memberError;

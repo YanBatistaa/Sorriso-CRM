@@ -8,7 +8,7 @@ import { Trash2, Edit, Check, X, GripVertical } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import type { KanbanStage } from '@/types/patient';
 import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
-import { useCurrentUserRole } from '@/hooks/useCurrentUserRole'; // Importar o hook
+import { useCurrentUserRole } from '@/hooks/useCurrentUserRole';
 
 export const PersonalizationSettingsTab = () => {
     const { stages, addStage, updateStage, deleteStage, updateStageOrder, isLoading } = useKanbanStages();
@@ -19,11 +19,43 @@ export const PersonalizationSettingsTab = () => {
     const [editingStage, setEditingStage] = useState<Partial<KanbanStage> | null>(null);
     const isAdmin = role === 'admin';
 
-    // ... (funções de handle inalteradas)
+    const handleAddStage = async () => {
+        if (!newStage.trim()) return;
+        try {
+            await addStage({ name: newStage, order: stages.length });
+            setNewStage('');
+            toast({ title: "Sucesso", description: "Novo estágio do funil adicionado." });
+        } catch (error: any) { toast({ title: "Erro", description: error.message, variant: "destructive" }); }
+    };
+    
+    const handleUpdateStage = async () => {
+        if (!editingStage || !editingStage.id || !editingStage.name?.trim()) return;
+        try {
+            await updateStage({ id: editingStage.id, name: editingStage.name });
+            setEditingStage(null);
+            toast({ title: "Sucesso", description: "Estágio atualizado." });
+        } catch (error: any) { toast({ title: "Erro", description: error.message, variant: "destructive" }); }
+    };
+
+    const handleDeleteStage = async (id: string) => {
+        if (stages.length <= 2) {
+            toast({ title: "Atenção", description: "O funil deve ter no mínimo 2 estágios.", variant: "destructive" });
+            return;
+        }
+        try {
+            await deleteStage(id);
+            toast({ title: "Sucesso", description: "Estágio removido." });
+        } catch (error: any) { toast({ title: "Erro", description: error.message, variant: "destructive" }); }
+    };
 
     const onDragEndStages = (result: DropResult) => {
-        if (!result.destination || !isAdmin) return; // Desativa o drag-and-drop para não-admins
-        // ... (resto da função inalterada)
+        if (!result.destination || !isAdmin) return;
+        const items = Array.from(stages);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        const updatedOrder = items.map((item, index) => ({ id: item.id, order: index }));
+        updateStageOrder(updatedOrder);
     };
 
     return (
@@ -60,7 +92,27 @@ export const PersonalizationSettingsTab = () => {
                                                     </div>
                                                     {isAdmin && (
                                                         <div className="flex items-center gap-1">
-                                                            {/* ... (JSX dos botões de editar/apagar inalterado) ... */}
+                                                            {editingStage?.id === stage.id ? (
+                                                                <>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-green-600 hover:bg-green-100" onClick={handleUpdateStage}><Check className='h-4 w-4'/></Button>
+                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:bg-red-100" onClick={() => setEditingStage(null)}><X className='h-4 w-4'/></Button>
+                                                                </>
+                                                            ) : (
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => setEditingStage(stage)}><Edit className='h-4 w-4'/></Button>
+                                                            )}
+                                                            
+                                                            <AlertDialog>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <Button variant="ghost" size="icon" className='h-8 w-8 text-destructive hover:bg-destructive/10'><Trash2 className='h-4 w-4'/></Button>
+                                                                </AlertDialogTrigger>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader><AlertDialogTitle>Tem certeza?</AlertDialogTitle><AlertDialogDescription>Excluir um estágio pode desassociar pacientes. Esta ação não pode ser desfeita.</AlertDialogDescription></AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleDeleteStage(stage.id)}>Excluir</AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </AlertDialog>
                                                         </div>
                                                     )}
                                                 </li>

@@ -4,14 +4,16 @@ import { PatientCard } from './PatientCard';
 import { Kanban } from '@/components/ui/kanban';
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
+import { SpecialistInfo } from '@/pages/Vendas';
 
 interface KanbanColumnProps {
-  status: string; // Alterado de PatientStatus para string
+  status: string;
   patients: Patient[];
   onClickPatient: (patient: Patient) => void;
+  specialistsMap: Map<string, SpecialistInfo>;
 }
 
-export function KanbanColumn({ status, patients, onClickPatient }: KanbanColumnProps) {
+export function KanbanColumn({ status, patients, onClickPatient, specialistsMap }: KanbanColumnProps) {
   const totalValue = patients.reduce((sum, p) => sum + p.treatment_value, 0);
 
   return (
@@ -30,10 +32,7 @@ export function KanbanColumn({ status, patients, onClickPatient }: KanbanColumnP
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={cn(
-              "flex flex-col h-full rounded-md p-1 transition-colors",
-              snapshot.isDraggingOver && "bg-accent"
-            )}
+            className={cn("flex flex-col h-full rounded-md p-1 transition-colors", snapshot.isDraggingOver && "bg-accent")}
           >
             <div className="overflow-y-auto pr-1">
               {patients.map((patient, index) => (
@@ -41,7 +40,8 @@ export function KanbanColumn({ status, patients, onClickPatient }: KanbanColumnP
                   key={patient.id} 
                   patient={patient} 
                   index={index} 
-                  onClick={() => onClickPatient(patient)} 
+                  onClick={() => onClickPatient(patient)}
+                  specialistsMap={specialistsMap}
                 />
               ))}
             </div>

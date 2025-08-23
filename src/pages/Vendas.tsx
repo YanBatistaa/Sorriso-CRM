@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { usePatients } from '@/hooks/usePatients';
 import { Patient } from '@/types/patient';
 import { DragDropContext, DropResult } from 'react-beautiful-dnd';
@@ -9,16 +9,36 @@ import { PatientForm } from '@/components/patients/PatientForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useKanbanStages } from '@/hooks/useKanbanStages';
+import { useTeam } from '@/hooks/useTeam';
+import { getSpecialistColorClass } from '@/lib/color-utils';
+
+export interface SpecialistInfo {
+    fullName: string;
+    colorClass: string;
+}
 
 const Vendas = () => {
   const { data: serverPatients, updatePatient } = usePatients();
   const { stages, isLoading: areStagesLoading } = useKanbanStages();
+  const { members } = useTeam();
   const { toast } = useToast();
   
   const [patientList, setPatientList] = useState<Patient[]>([]);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   
+  const specialistsMap = useMemo(() => {
+    const map = new Map<string, SpecialistInfo>();
+    const specialists = members.filter(m => m.role === 'doctor');
+    specialists.forEach(s => {
+        map.set(s.user_id, {
+            fullName: s.full_name || s.email,
+            colorClass: getSpecialistColorClass(s.user_id)
+        });
+    });
+    return map;
+  }, [members]);
+
   useEffect(() => {
     setPatientList(serverPatients);
   }, [serverPatients]);
@@ -33,26 +53,24 @@ const Vendas = () => {
     const patientToMove = patientList.find(p => p.id === draggableId);
     if (!patientToMove) return;
 
-    const newStatus = destination.droppableId; // É apenas uma string agora
+    const newStatus = destination.droppableId;
     
-    // Otimisticamente atualiza a UI
+    const originalPatientList = [...patientList];
+    
     const updatedPatient = { ...patientToMove, status: newStatus };
     const newList = patientList.filter(p => p.id !== draggableId);
     newList.splice(destination.index, 0, updatedPatient);
     setPatientList(newList);
 
-    // Envia a atualização para o backend
     updatePatient({ id: draggableId, status: newStatus })
       .catch(() => {
         toast({ title: "Erro", description: "Não foi possível mover o paciente.", variant: "destructive" });
-        setPatientList(patientList); // Reverte a UI em caso de erro
+        setPatientList(originalPatientList);
       });
   };
 
-  const handleOpenEdit = () => {
-    if (selectedPatient) setIsFormOpen(true);
-  };
-
+  const handleOpenEdit = () => { if (selectedPatient) setIsFormOpen(true); };
+  
   const handleStatusChangeInDialog = (newStatus: string) => {
     if (selectedPatient && selectedPatient.status !== newStatus) {
         updatePatient({ id: selectedPatient.id!, status: newStatus });
@@ -82,9 +100,10 @@ const Vendas = () => {
             {areStagesLoading ? <p>Carregando funil...</p> : stages.map(stage => (
               <KanbanColumn
                 key={stage.id}
-                status={stage.name} // Sem a conversão para PatientStatus
+                status={stage.name}
                 patients={patientList.filter(p => p.status === stage.name)}
                 onClickPatient={setSelectedPatient}
+                specialistsMap={specialistsMap}
               />
             ))}
           </Kanban.Board>

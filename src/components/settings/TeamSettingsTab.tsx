@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Trash2 } from 'lucide-react';
-import { AddMemberDialog } from './AddMemberDialog'; // Importar o novo modal
+import { AddMemberDialog } from './AddMemberDialog';
 
 export const TeamSettingsTab = () => {
     const { user } = useAuth();
@@ -14,7 +14,7 @@ export const TeamSettingsTab = () => {
     return (
         <Panel>
             <PanelHeader>
-                <PanelTitle>Equipa</PanelTitle>
+                <PanelTitle>Equipe</PanelTitle>
                 <PanelDescription>Convide e gira os membros da sua clínica.</PanelDescription>
             </PanelHeader>
             <PanelContent className="space-y-6">
@@ -42,7 +42,7 @@ export const TeamSettingsTab = () => {
                                             <TableCell className="font-medium">{member.email}</TableCell>
                                             <TableCell><Badge variant="outline">{member.role}</Badge></TableCell>
                                             <TableCell className="text-right">
-                                                {member.user_id !== user?.id && ( // O dono não pode remover-se a si mesmo
+                                                {member.user_id !== user?.id && (
                                                     <Button variant="ghost" size="icon" className="text-destructive" onClick={() => deleteMember(member.id)}>
                                                         <Trash2 className="h-4 w-4"/>
                                                     </Button>
